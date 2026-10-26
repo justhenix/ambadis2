@@ -4,6 +4,10 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
   <title>Dashboard Interaktif RSA &amp; RSA-CRT</title>
+  <!-- Google Fonts: Inter (Sans-serif) & JetBrains Mono (Monospace) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Tailwind CSS CDN with forms and container queries plugins -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <!-- Chart.js for Interactive Benchmark Visualizations -->
@@ -26,8 +30,8 @@
             }
           },
           fontFamily: {
-            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-            mono: ['JetBrains Mono', 'Fira Code', 'Courier New', 'monospace']
+            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'Consolas', '"Fira Code"', 'monospace']
           },
           boxShadow: {
             'subtle': '0 4px 20px -2px rgba(8, 98, 136, 0.06)',
@@ -87,7 +91,6 @@
         <div>
           <div class="flex items-center space-x-2">
             <h1 class="text-xl md:text-2xl font-bold text-brand-deep tracking-tight">RSA vs RSA-CRT</h1>
-            <span class="text-xs bg-brand-sky/20 text-brand-deep px-2 py-0.5 rounded-full font-semibold">Discrete Math Lab</span>
           </div>
         </div>
       </div>
@@ -141,7 +144,8 @@
         </label>
         <div class="relative">
           <select id="preset-select" onchange="applyPreset(this.value)"
-                  class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm font-medium rounded-xl py-3 px-4 pr-10 focus:ring-2 focus:ring-brand-ocean focus:border-brand-ocean outline-none cursor-pointer transition-all">
+                  style="background-image: none;"
+                  class="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-800 text-sm font-medium rounded-xl py-3 px-4 pr-10 focus:ring-2 focus:ring-brand-ocean focus:border-brand-ocean outline-none cursor-pointer transition-all">
             <option value="preset1" selected>Preset 1: Kasus Contoh Laporan (p=43, q=59, e=13, M=1819)</option>
             <option value="preset2">Preset 2: Bit Kecil Standard (p=61, q=53, e=17, M=65)</option>
             <option value="preset3">Preset 3: Kasus Uji V5 (p=17, q=61, e=7, M=42)</option>
@@ -300,26 +304,26 @@
               <span class="text-[11px] font-mono font-semibold bg-slate-100 text-slate-700 px-2 py-0.5 rounded">Single Modulus</span>
             </div>
             <!-- Mathematical breakdown list -->
-            <div class="space-y-2 font-mono text-xs text-slate-600 bg-brand-soft/50 p-3 rounded-lg border border-slate-100">
-              <div class="flex justify-between">
-                <span>Modulus n = p × q:</span>
-                <span id="out-n" class="font-bold text-brand-deep">2537</span>
+            <div class="space-y-2.5 text-xs bg-brand-soft/50 p-3.5 rounded-xl border border-slate-100">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600 font-medium">Modulus n = p × q:</span>
+                <span id="out-n" class="font-mono font-bold text-brand-deep text-sm">2537</span>
               </div>
-              <div class="flex justify-between">
-                <span>Totient φ(n) = (p-1)(q-1):</span>
-                <span id="out-phi" class="font-bold text-brand-deep">2436</span>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600 font-medium">Totient φ(n) = (p-1)(q-1):</span>
+                <span id="out-phi" class="font-mono font-bold text-brand-deep text-sm">2436</span>
               </div>
-              <div class="flex justify-between">
-                <span>Eksponen Privat d:</span>
-                <span id="out-d" class="font-bold text-brand-deep">937</span>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600 font-medium">Eksponen Privat d:</span>
+                <span id="out-d" class="font-mono font-bold text-brand-deep text-sm">937</span>
               </div>
-              <div class="flex justify-between bg-brand-sky/20 px-2 py-1 rounded border border-brand-sky/40">
+              <div class="flex justify-between items-center bg-brand-sky/20 px-2.5 py-1.5 rounded-lg border border-brand-sky/40">
                 <span class="text-brand-deep font-semibold">Ciphertext C = M<sup>e</sup> mod n:</span>
-                <span id="out-c" class="font-bold text-brand-deep">2081</span>
+                <span id="out-c" class="font-mono font-bold text-brand-deep text-sm">2081</span>
               </div>
-              <div class="flex justify-between pt-1 border-t border-slate-200">
-                <span id="label-dekripsi-rsa">Dekripsi: M = C<sup>d</sup> mod n</span>
-                <span id="out-m-rsa" class="text-emerald-700 font-bold">1819</span>
+              <div class="flex justify-between items-center pt-1.5 border-t border-slate-200">
+                <span id="label-dekripsi-rsa" class="text-slate-700 font-medium">Dekripsi: M = C<sup>d</sup> mod n</span>
+                <span id="out-m-rsa" class="font-mono text-emerald-700 font-bold text-sm">1819</span>
               </div>
             </div>
           </div>
@@ -340,26 +344,26 @@
               <span class="text-[11px] font-mono font-bold bg-brand-sun text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300">3x - 4x Lebih Cepat</span>
             </div>
             <!-- Mathematical breakdown list -->
-            <div class="space-y-2 font-mono text-xs text-slate-600 bg-brand-soft/50 p-3 rounded-lg border border-slate-100">
-              <div class="flex justify-between">
-                <span>d<sub>P</sub> = d mod (p-1):</span>
-                <span id="out-dp" class="font-bold text-brand-deep">13</span>
+            <div class="space-y-2.5 text-xs bg-brand-soft/50 p-3.5 rounded-xl border border-slate-100">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600 font-medium">d<sub>P</sub> = d mod (p-1):</span>
+                <span id="out-dp" class="font-mono font-bold text-brand-deep text-sm">13</span>
               </div>
-              <div class="flex justify-between">
-                <span>d<sub>Q</sub> = d mod (q-1):</span>
-                <span id="out-dq" class="font-bold text-brand-deep">9</span>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600 font-medium">d<sub>Q</sub> = d mod (q-1):</span>
+                <span id="out-dq" class="font-mono font-bold text-brand-deep text-sm">9</span>
               </div>
-              <div class="flex justify-between">
-                <span>q<sub>inv</sub> = q<sup>-1</sup> mod p:</span>
-                <span id="out-qinv" class="font-bold text-brand-deep">30</span>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600 font-medium">q<sub>inv</sub> = q<sup>-1</sup> mod p:</span>
+                <span id="out-qinv" class="font-mono font-bold text-brand-deep text-sm">30</span>
               </div>
-              <div class="flex justify-between">
-                <span>m<sub>1</sub> = C<sup>d<sub>P</sub></sup> mod p, m<sub>2</sub> = C<sup>d<sub>Q</sub></sup> mod q:</span>
-                <span id="out-m1m2" class="font-bold text-brand-ocean">m₁=13, m₂=49</span>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600 font-medium">m<sub>1</sub> = C<sup>d<sub>P</sub></sup> mod p, m<sub>2</sub> = C<sup>d<sub>Q</sub></sup> mod q:</span>
+                <span id="out-m1m2" class="font-mono font-bold text-brand-ocean text-xs">m₁=13, m₂=49</span>
               </div>
-              <div class="flex justify-between pt-1 border-t border-slate-200">
-                <span>Rekonstruksi Garner (M = m₂ + h·q):</span>
-                <span id="out-m-crt" class="text-emerald-700 font-bold">M = 1819</span>
+              <div class="flex justify-between items-center pt-1.5 border-t border-slate-200">
+                <span class="text-slate-700 font-medium">Rekonstruksi Garner (M = m₂ + h·q):</span>
+                <span id="out-m-crt" class="font-mono text-emerald-700 font-bold text-sm">M = 1819</span>
               </div>
             </div>
           </div>
@@ -541,7 +545,7 @@
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-600">
-            <thead class="bg-slate-50 text-slate-400 font-mono uppercase text-[10px] border-b border-slate-200">
+            <thead class="bg-slate-50 text-slate-600 font-bold uppercase text-[11px] tracking-wider border-b border-slate-200">
               <tr>
                 <th class="px-4 py-3">Prima p/q</th>
                 <th class="px-4 py-3">Kunci (n)</th>
@@ -611,7 +615,7 @@
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-600">
-            <thead class="bg-slate-50 text-slate-400 font-mono uppercase text-[10px] border-b border-slate-200">
+            <thead class="bg-slate-50 text-slate-600 font-bold uppercase text-[11px] tracking-wider border-b border-slate-200">
               <tr>
                 <th class="px-4 py-3">ID</th>
                 <th class="px-4 py-3">Kategori</th>
@@ -621,7 +625,7 @@
                 <th class="px-4 py-3">Keterangan Hasil</th>
               </tr>
             </thead>
-            <tbody id="test-table-body" class="divide-y divide-slate-100 font-mono">
+            <tbody id="test-table-body" class="divide-y divide-slate-100 font-sans">
               <!-- Rendered dynamically -->
             </tbody>
           </table>
@@ -690,11 +694,7 @@
         </ul>
       </div>
     </div>
-    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end space-x-3">
-      <button onclick="document.getElementById('algo-info-modal').classList.add('hidden')" type="button" 
-              class="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 transition-colors cursor-pointer">
-        Tutup
-      </button>
+    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
       <button onclick="document.getElementById('algo-info-modal').classList.add('hidden')" type="button" 
               class="px-5 py-2.5 text-xs font-bold text-white bg-brand-deep hover:bg-brand-ocean rounded-xl transition-all shadow-sm hover:shadow-md flex items-center space-x-1.5 cursor-pointer">
         <span>Mengerti &amp; Lanjutkan ke Simulasi</span>
@@ -1165,12 +1165,12 @@
         const badgeColor = isPass ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800';
 
         tr.innerHTML = `
-          <td class="px-4 py-3 font-bold text-brand-deep">${item.id}</td>
+          <td class="px-4 py-3 font-mono font-bold text-brand-deep">${item.id}</td>
           <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700">${item.tipe}</span></td>
-          <td class="px-4 py-3 text-slate-700">${item.input}</td>
-          <td class="px-4 py-3 text-slate-500">${item.ekspektasi}</td>
+          <td class="px-4 py-3 font-mono text-xs text-slate-700">${item.input}</td>
+          <td class="px-4 py-3 text-xs text-slate-600">${item.ekspektasi}</td>
           <td class="px-4 py-3 text-center"><span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${badgeColor}">${item.status}</span></td>
-          <td class="px-4 py-3 text-[11px] text-slate-600">${item.keterangan}</td>
+          <td class="px-4 py-3 text-xs text-slate-600 leading-relaxed">${item.keterangan}</td>
         `;
         tbody.appendChild(tr);
       });
