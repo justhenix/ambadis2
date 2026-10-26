@@ -26,4 +26,21 @@ python .\rsa_benchmark.py --prime-bits 256 512 1024 --e 65537 --message 12345 --
 
 Hasilnya masuk ke `benchmark_results.csv` di folder skrip. Setiap benchmark yang berhasil mengganti hasil sebelumnya.
 
-[Panduan presentasi](PANDUAN_PRESENTASI_RSA.md) menghubungkan flowchart dengan fungsi di kode. [Daftar kasus uji](KASUS_UJI_RSA.md) memuat input dan hasil yang dicek oleh skrip tes. Untuk berbagi tanpa Git, kirim [paket ZIP](rsa_benchmark_untuk_tim.zip).
+## Menjalankan Antarmuka Web (Web UI Dashboard)
+
+Selain lewat terminal CLI, Anda dapat menjalankan dashboard visual berbasis web menggunakan **Streamlit**:
+
+```powershell
+.\run_web_ui.bat
+# atau
+python -m streamlit run app.py
+```
+
+Dashboard akan otomatis terbuka di browser pada `http://localhost:8501`. Fitur web meliputi:
+1. **Simulasi & Langkah Matematis**: Perhitungan step-by-step $n, \phi(n), d, d_P, d_Q, q_{inv}$, enkripsi $C$, dan komparasi dekripsi standar vs CRT.
+2. **Benchmark & Visualisasi Grafik**: Uji kecepatan multi-bit ($256, 512, 1024$ bit) dengan bar chart waktu eksekusi, line chart rasio *speedup*, dan tombol unduh CSV langsung.
+3. **Verifikasi Kasus Uji**: Menjalankan 16 kasus uji otomatis dengan badge status visual.
+
+---
+
+[Panduan presentasi](PANDUAN_PRESENTASI_RSA.md) menghubungkan flowchart dengan fungsi di kode. [Alur pengujian](FLOW_TESTING.md) menjelaskan diagram alir dan tahapan verifikasi tes. [Daftar kasus uji](KASUS_UJI_RSA.md) memuat input dan hasil yang dicek oleh skrip tes. Untuk berbagi tanpa Git, kirim [paket ZIP](rsa_benchmark_untuk_tim.zip).
