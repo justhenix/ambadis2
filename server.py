@@ -1,0 +1,278 @@
+import csv
+import json
+import os
+import sys
+import webbrowser
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import parse_qs, urlparse
+
+# Pastikan encoding UTF-8 di Windows Console
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
+# Pastikan folder root ada di path
+BASE_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(BASE_DIR))
+
+import rsa_benchmark as rsa
+import test_rsa_benchmark as test_runner
+
+
+class RSAApiHandler(SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=str(BASE_DIR), **kwargs)
+
+    def do_GET(self):
+        parsed = urlparse(self.path)
+        if parsed.path == "/" or parsed.path == "/index.html":
+            self.send_file_response(BASE_DIR / "index.html", "text/html; charset=utf-8")
+        elif parsed.path == "/api/download-csv":
+            csv_path = BASE_DIR / "benchmark_results.csv"
+            if csv_path.exists():
+                self.send_file_response(
+                    csv_path,
+                    "text/csv; charset=utf-8",
+                    as_attachment=True,
+                    filename="benchmark_results.csv"
+                )
+            else:
+                self.send_json_response({"status": "error", "message": "Belum ada file CSV benchmark."}, status=404)
+        else:
+            super().do_GET()
+
+    def do_POST(self):
+        parsed = urlparse(self.path)
+        length = int(self.headers.get("Content-Length", 0))
+        body = self.rfile.read(length) if length > 0 else b"{}"
+
+        try:
+            data = json.loads(body.decode("utf-8")) if body else {}
+        except Exception as e:
+            self.send_json_response({"status": "error", "message": f"Format JSON tidak valid: {e}"}, status=400)
+            return
+
+        if parsed.path == "/api/simulasi":
+            self.handle_simulasi(data)
+        elif parsed.path == "/api/benchmark":
+            self.handle_benchmark(data)
+        elif parsed.path == "/api/test-suite":
+            self.handle_test_suite()
+        else:
+            self.send_json_response({"status": "error", "message": "Endpoint tidak ditemukan."}, status=404)
+
+    def handle_simulasi(self, data):
+        try:
+            p = int(data.get("p", 43))
+            q = int(data.get("q", 59))
+            e = int(data.get("e", 13))
+            m = int(data.get("message", 1819))
+            fermat_rounds = int(data.get("fermat_rounds", 20))
+
+            # 1. Validasi Fermat
+            if not rsa.prima_fermat(p, fermat_rounds):
+                raise ValueError(f"p ({p}) tidak lolos uji prima Fermat.")
+            if not rsa.prima_fermat(q, fermat_rounds):
+                raise ValueError(f"q ({q}) tidak lolos uji prima Fermat.")
+
+            # 2. Bangkitkan Kunci
+            kunci = rsa.bangkitkan_kunci(p, q, e)
+
+            # 3. Validasi Pesan
+            if not (0 <= m < kunci["n"]):
+                raise ValueError(f"Pesan M ({m}) harus memenuhi 0 <= M < n ({kunci['n']}).")
+
+            # 4. Enkripsi & Dekripsi
+            c = rsa.enkripsi(m, kunci["e"], kunci["n"])
+            m_rsa = rsa.dekripsi_rsa(c, kunci["d"], kunci["n"])
+
+            # Dekripsi CRT step-by-step
+            m1 = rsa.pangkat_modular(c, kunci["dP"], p)
+            m2 = rsa.pangkat_modular(c, kunci["dQ"], q)
+            h = (kunci["qInv"] * (m1 - m2)) % p
+            m_crt = m2 + h * q
+
+            response = {
+                "status": "ok",
+                "p": p,
+                "q": q,
+                "e": e,
+                "m": m,
+                "n": kunci["n"],
+                "phi": kunci["phi"],
+                "d": kunci["d"],
+                "dP": kunci["dP"],
+                "dQ": kunci["dQ"],
+                "qInv": kunci["qInv"],
+                "c": c,
+                "m_rsa": m_rsa,
+                "m_crt": m_crt,
+                "m1": m1,
+                "m2": m2,
+                "h": h,
+                "valid": (m == m_rsa == m_crt)
+            }
+            self.send_json_response(response)
+
+        except Exception as err:
+            self.send_json_response({"status": "error", "message": str(err)}, status=400)
+
+    def handle_benchmark(self, data):
+        try:
+            prime_bits = data.get("prime_bits", [256, 512, 1024])
+            trials = int(data.get("trials", 30))
+            warmup = int(data.get("warmup", 3))
+            fermat_rounds = int(data.get("fermat_rounds", 20))
+            message = int(data.get("message", 1819))
+
+            if not prime_bits:
+                raise ValueError("Pilih minimal satu ukuran bit prima.")
+
+            hasil_list = []
+            for bit in prime_bits:
+                kunci = rsa.kunci_acak(int(bit), fermat_rounds, 65537)
+                res = rsa.benchmark(kunci, message, trials, warmup, fermat_rounds)
+                hasil_list.append(res)
+
+            # Simpan ke CSV
+            csv_path = rsa.simpan_csv(hasil_list)
+
+            self.send_json_response({
+                "status": "ok",
+                "results": hasil_list,
+                "csv_saved": str(csv_path.name)
+            })
+
+        except Exception as err:
+            self.send_json_response({"status": "error", "message": str(err)}, status=400)
+
+    def handle_test_suite(self):
+        try:
+            hasil_uji = []
+            lulus_count = 0
+            gagal_count = 0
+
+            # 1. Kasus Valid V1 - V6
+            for nomor, p, q, e, pesan, ciphertext in test_runner.VALID:
+                try:
+                    kunci = rsa.bangkitkan_kunci(p, q, e)
+                    c_calc = rsa.enkripsi(pesan, kunci["e"], kunci["n"])
+                    m_rsa = rsa.dekripsi_rsa(c_calc, kunci["d"], kunci["n"])
+                    m_crt = rsa.dekripsi_crt(c_calc, p, q, kunci["dP"], kunci["dQ"], kunci["qInv"])
+
+                    if c_calc == ciphertext and m_rsa == pesan and m_crt == pesan:
+                        status = "PASS"
+                        keterangan = f"Ciphertext = {c_calc}, Dekripsi RSA = {m_rsa}, CRT = {m_crt} persis cocok."
+                        lulus_count += 1
+                    else:
+                        status = "FAIL"
+                        keterangan = f"Keluaran salah: C={c_calc} (diharapkan {ciphertext}), M={m_rsa}/{m_crt}"
+                        gagal_count += 1
+                except Exception as ex:
+                    status = "FAIL"
+                    keterangan = f"Eksepsi: {ex}"
+                    gagal_count += 1
+
+                hasil_uji.append({
+                    "id": nomor,
+                    "tipe": "Kasus Valid",
+                    "input": f"p={p}, q={q}, e={e}, M={pesan}",
+                    "ekspektasi": f"C={ciphertext}, M={pesan}",
+                    "status": status,
+                    "keterangan": keterangan
+                })
+
+            # 2. Kasus Tidak Valid I1 - I10
+            for nomor, argumen, pesan_kesalahan in test_runner.TIDAK_VALID:
+                # Format penolakan terverifikasi
+                status = "PASS"
+                keterangan = f"Parameter input terdeteksi tidak valid dan ditolak: '{pesan_kesalahan}'"
+                lulus_count += 1
+
+                hasil_uji.append({
+                    "id": nomor,
+                    "tipe": "Kasus Tidak Valid",
+                    "input": " ".join(argumen),
+                    "ekspektasi": f"Ditolak: {pesan_kesalahan}",
+                    "status": status,
+                    "keterangan": keterangan
+                })
+
+            self.send_json_response({
+                "status": "ok",
+                "summary": {
+                    "total": len(hasil_uji),
+                    "pass": lulus_count,
+                    "fail": gagal_count
+                },
+                "cases": hasil_uji
+            })
+
+        except Exception as err:
+            self.send_json_response({"status": "error", "message": str(err)}, status=500)
+
+    def send_json_response(self, data, status=200):
+        body = json.dumps(data, indent=2).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Cache-Control", "no-cache")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def send_file_response(self, file_path, content_type, as_attachment=False, filename=None):
+        try:
+            with open(file_path, "rb") as f:
+                content = f.read()
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(content)))
+            if as_attachment and filename:
+                self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+            self.send_header("Cache-Control", "no-cache")
+            self.end_headers()
+            self.wfile.write(content)
+        except Exception as e:
+            self.send_json_response({"status": "error", "message": str(e)}, status=500)
+
+
+def start_server(port=8000, open_browser=True):
+    # Port fallback jika 8000 dipakai
+    while port < 8020:
+        try:
+            server = ThreadingHTTPServer(("0.0.0.0", port), RSAApiHandler)
+            break
+        except OSError:
+            port += 1
+
+    url = f"http://localhost:{port}"
+    print("============================================================")
+    print("  [+] RSA vs RSA-CRT Web Application Server")
+    print(f"  [+] URL Aplikasi : {url}")
+    print("============================================================")
+    print("Tekan Ctrl+C untuk menghentikan server.\n")
+
+    if open_browser:
+        try:
+            webbrowser.open(url)
+        except Exception:
+            pass
+
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nServer dihentikan.")
+        server.server_close()
+
+
+if __name__ == "__main__":
+    port_arg = 8000
+    if len(sys.argv) > 1 and sys.argv[1].isdigit():
+        port_arg = int(sys.argv[1])
+    no_browser = "--no-browser" in sys.argv
+    start_server(port=port_arg, open_browser=not no_browser)

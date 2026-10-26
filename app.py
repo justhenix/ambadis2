@@ -8,7 +8,7 @@ import test_rsa_benchmark as test_runner
 
 st.set_page_config(
     page_title="RSA & RSA-CRT Benchmark Lab",
-    page_icon="🔐",
+    page_icon="[RSA]",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -36,7 +36,7 @@ st.markdown(
 
 # Sidebar
 with st.sidebar:
-    st.title("🔐 RSA vs RSA-CRT")
+    st.title("RSA vs RSA-CRT")
     st.markdown("**Laboratorium Kriptografi & Komparasi Waktu Dekripsi**")
     st.markdown("---")
     st.markdown(
@@ -56,16 +56,16 @@ with st.sidebar:
     st.caption("Proyek Matematika Diskrit • Pure Python 3 & Streamlit")
 
 # Main Page Header
-st.title("🛡️ Dashboard Interaktif RSA & RSA-CRT")
+st.title("Dashboard Interaktif RSA & RSA-CRT")
 st.markdown(
     "Aplikasi web untuk simulasi langkah matematis, pengujian performa eksekusi, "
     "dan verifikasi kasus uji algoritma RSA vs RSA-CRT."
 )
 
 tab_calc, tab_bench, tab_test = st.tabs([
-    "🧮 1. Simulasi & Langkah Matematis",
-    "⚡ 2. Benchmark & Visualisasi Grafik",
-    "🧪 3. Verifikasi Kasus Uji (Test Suite)"
+    "1. Simulasi & Langkah Matematis",
+    "2. Benchmark & Visualisasi Grafik",
+    "3. Verifikasi Kasus Uji (Test Suite)"
 ])
 
 # ==========================================================
@@ -113,10 +113,10 @@ with tab_calc:
         try:
             # 1. Validasi Fermat
             if not rsa.prima_fermat(p_val, fermat_check_rounds):
-                st.error(f"❌ Parameter **p = {p_val}** tidak lolos pengujian prima Fermat.")
+                st.error(f"[GAGAL] Parameter p = {p_val} tidak lolos pengujian prima Fermat.")
                 st.stop()
             if not rsa.prima_fermat(q_val, fermat_check_rounds):
-                st.error(f"❌ Parameter **q = {q_val}** tidak lolos pengujian prima Fermat.")
+                st.error(f"[GAGAL] Parameter q = {q_val} tidak lolos pengujian prima Fermat.")
                 st.stop()
 
             # 2. Bangkitkan Kunci
@@ -124,7 +124,7 @@ with tab_calc:
             
             # 3. Validasi Pesan
             if not (0 <= m_val < kunci["n"]):
-                st.error(f"❌ Pesan M harus memenuhi 0 <= M < n (0 <= {m_val} < {kunci['n']}).")
+                st.error(f"[GAGAL] Pesan M harus memenuhi 0 <= M < n (0 <= {m_val} < {kunci['n']}).")
                 st.stop()
 
             # 4. Enkripsi & Dekripsi
@@ -132,7 +132,7 @@ with tab_calc:
             m_rsa = rsa.dekripsi_rsa(c, kunci["d"], kunci["n"])
             m_crt = rsa.dekripsi_crt(c, p_val, q_val, kunci["dP"], kunci["dQ"], kunci["qInv"])
 
-            st.success("✅ Perhitungan berhasil! Semua parameter valid dan lolos verifikasi.")
+            st.success("Perhitungan berhasil! Semua parameter valid dan lolos verifikasi.")
 
             col_res1, col_res2, col_res3 = st.columns(3)
             with col_res1:
@@ -194,10 +194,10 @@ with tab_calc:
 # TAB 2: BENCHMARK & GRAFIK PERFORMA
 # ==========================================================
 with tab_bench:
-    st.header("⚡ Benchmark Waktu Dekripsi: RSA vs RSA-CRT")
+    st.header("Benchmark Waktu Dekripsi: RSA vs RSA-CRT")
     st.write(
-        "Uji kecepatan pemrosesan dekripsi pada berbagai ukuran panjang bit prima $p$ dan $q$. "
-        "Program menjalankan pemanasan (*warmup*) dan percobaan berulang dengan urutan bergantian "
+        "Uji kecepatan pemrosesan dekripsi pada berbagai ukuran panjang bit prima p dan q. "
+        "Program menjalankan pemanasan (warmup) dan percobaan berulang dengan urutan bergantian "
         "untuk memastikan hasil median tidak bias."
     )
 
@@ -216,7 +216,7 @@ with tab_bench:
         bench_message = st.number_input("Pesan Uji M:", value=1819, step=1, min_value=1)
         bench_fermat = st.slider("Basis Fermat Rounds:", min_value=5, max_value=30, value=20, step=5)
 
-    if st.button("🚀 Mulai Benchmark", type="primary", use_container_width=True):
+    if st.button("Mulai Benchmark", type="primary", use_container_width=True):
         if not bit_options:
             st.warning("Pilih minimal satu ukuran bit prima untuk diuji.")
             st.stop()
@@ -226,14 +226,14 @@ with tab_bench:
         status_text = st.empty()
 
         for idx, bit in enumerate(bit_options):
-            status_text.markdown(f"⏳ **Sedang memproses panjang prima {bit} bit...** (Membangkitkan prima & menguji dekripsi)")
+            status_text.markdown(f"Sedang memproses panjang prima {bit} bit... (Membangkitkan prima & menguji dekripsi)")
             t_start = time.perf_counter()
             kunci = rsa.kunci_acak(bit, bench_fermat, 65537)
             res = rsa.benchmark(kunci, bench_message, trials_count, warmup_count, bench_fermat)
             hasil_list.append(res)
             progress_bar.progress((idx + 1) / len(bit_options))
 
-        status_text.success("🎉 Benchmark selesai untuk semua ukuran bit!")
+        status_text.success("Benchmark selesai untuk semua ukuran bit!")
         progress_bar.empty()
 
         # Simpan CSV ke disk
@@ -267,7 +267,7 @@ with tab_bench:
                 )
 
         st.markdown("---")
-        st.subheader("📊 Visualisasi Grafik Performa")
+        st.subheader("Visualisasi Grafik Performa")
 
         col_g1, col_g2 = st.columns(2)
         with col_g1:
@@ -287,14 +287,14 @@ with tab_bench:
             st.line_chart(speedup_df)
 
         st.markdown("---")
-        st.subheader("📋 Tabel Metrik Lengkap")
+        st.subheader("Tabel Metrik Lengkap")
         st.dataframe(df_display, use_container_width=True)
 
         # Download button CSV
         csv_buffer = io.StringIO()
         df.to_csv(csv_buffer, index=False)
         st.download_button(
-            label="📥 Unduh Hasil Benchmark (.CSV)",
+            label="Unduh Hasil Benchmark (.CSV)",
             data=csv_buffer.getvalue(),
             file_name="benchmark_results.csv",
             mime="text/csv",
@@ -305,13 +305,13 @@ with tab_bench:
 # TAB 3: VERIFIKASI KASUS UJI (TEST SUITE)
 # ==========================================================
 with tab_test:
-    st.header("🧪 Verifikasi Otomatis Kasus Uji (Test Suite)")
+    st.header("Verifikasi Otomatis Kasus Uji (Test Suite)")
     st.write(
-        "Menjalankan 16 pengujian otomatis yang mencakup 6 kasus valid (V1–V6) "
-        "dan 10 kasus penolakan input tidak valid (I1–I10) sesuai dokumen rancangan pengujian."
+        "Menjalankan 16 pengujian otomatis yang mencakup 6 kasus valid (V1-V6) "
+        "dan 10 kasus penolakan input tidak valid (I1-I10) sesuai dokumen rancangan pengujian."
     )
 
-    if st.button("▶️ Jalankan 16 Kasus Uji Otomatis", type="primary", use_container_width=True):
+    if st.button("Jalankan 16 Kasus Uji Otomatis", type="primary", use_container_width=True):
         st.info("Memulai eksekusi pengujian suite...")
         
         # Eksekusi V1 - V6

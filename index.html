@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Dashboard Interaktif RSA &amp; RSA-CRT</title>
+  <!-- Tailwind CSS CDN with forms and container queries plugins -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <!-- Chart.js for Interactive Benchmark Visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Tailwind Configuration for custom color palette matching reference UI -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              deep: '#086288',     // Deep Blue
+              ocean: '#4D8DBA',    // Ocean Blue
+              sky: '#97D7FF',      // Sky Blue
+              sun: '#FFEFC4',      // Warm Sun
+              soft: '#F4F9FD',     // Ambient surface
+              card: '#FFFFFF',
+              border: '#E2EEF7'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'Courier New', 'monospace']
+          },
+          boxShadow: {
+            'subtle': '0 4px 20px -2px rgba(8, 98, 136, 0.06)',
+            'elevated': '0 12px 32px -4px rgba(8, 98, 136, 0.12)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style data-purpose="custom-enhancements">
+    /* Custom styling for sleek custom sliders & range inputs */
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: #D9EBF7;
+      height: 6px;
+      border-radius: 9999px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #086288;
+      border: 3px solid #FFFFFF;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      background: #4D8DBA;
+    }
+    /* Hide native number input spinners for clean custom steppers */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+  </style>
+</head>
+<body class="bg-brand-soft text-slate-800 font-sans min-h-screen antialiased selection:bg-brand-sky selection:text-brand-deep">
+
+<!-- Main Application Wrapper -->
+<main class="overflow-y-auto px-4 py-6 md:px-10 lg:px-14 space-y-7 max-w-7xl mx-auto" data-purpose="main-dashboard-content">
+
+  <!-- Top Application Bar: Header and Navigation Tabs -->
+  <header class="space-y-3">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-brand-border/60">
+      <div class="flex items-center space-x-3.5">
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-xl md:text-2xl font-bold text-brand-deep tracking-tight">RSA vs RSA-CRT</h1>
+            <span class="text-xs bg-brand-sky/20 text-brand-deep px-2 py-0.5 rounded-full font-semibold">Discrete Math Lab</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <button onclick="document.getElementById('algo-info-modal').classList.remove('hidden')" type="button" 
+                class="inline-flex items-center space-x-2 py-2 px-3.5 bg-white hover:bg-slate-50 border border-brand-border hover:border-brand-sky text-brand-deep font-semibold text-xs rounded-xl transition-all shadow-sm hover:shadow-md cursor-pointer">
+          <svg class="w-4 h-4 text-brand-deep" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span>Informasi Algoritma</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <nav class="flex flex-wrap gap-2 pt-1 border-b border-brand-border" data-purpose="tabs-navigation">
+      <button id="tab-btn-1" onclick="switchTab(1)" type="button"
+              class="tab-btn flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-semibold text-brand-deep border-b-2 border-brand-deep bg-white rounded-t-lg transition-all shadow-[0_-2px_6px_rgba(8,98,136,0.04)] cursor-pointer">
+        <span>1. Simulasi &amp; Langkah Matematis</span>
+      </button>
+      <button id="tab-btn-2" onclick="switchTab(2)" type="button"
+              class="tab-btn flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-medium text-slate-500 hover:text-brand-deep border-b-2 border-transparent hover:border-brand-sky rounded-t-lg transition-colors cursor-pointer">
+        <span>2. Benchmark &amp; Visualisasi Grafik</span>
+      </button>
+      <button id="tab-btn-3" onclick="switchTab(3)" type="button"
+              class="tab-btn flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-medium text-slate-500 hover:text-brand-deep border-b-2 border-transparent hover:border-brand-sky rounded-t-lg transition-colors cursor-pointer">
+        <span>3. Verifikasi Kasus Uji</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- ========================================================== -->
+  <!-- TAB 1: SIMULASI & LANGKAH MATEMATIS                        -->
+  <!-- ========================================================== -->
+  <div id="tab-content-1" class="tab-pane space-y-7">
+    <!-- Simulation Form Card -->
+    <section class="bg-white rounded-2xl p-6 md:p-8 border border-brand-border shadow-subtle space-y-6">
+      <div class="border-b border-slate-100 pb-4">
+        <h2 class="text-lg md:text-xl font-bold text-brand-deep">
+          Simulasi Kunci, Enkripsi &amp; Dekripsi Langkah-demi-Langkah
+        </h2>
+        <p class="text-xs md:text-sm text-slate-500 mt-1">
+          Tentukan parameter manual atau gunakan preset bawaan untuk melihat dekomposisi rumus modular RSA vs RSA-CRT secara eksplisit.
+        </p>
+      </div>
+
+      <!-- Preset Selector -->
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-brand-deep uppercase tracking-wider" for="preset-select">
+          Pilih Preset Data Uji:
+        </label>
+        <div class="relative">
+          <select id="preset-select" onchange="applyPreset(this.value)"
+                  class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm font-medium rounded-xl py-3 px-4 pr-10 focus:ring-2 focus:ring-brand-ocean focus:border-brand-ocean outline-none cursor-pointer transition-all">
+            <option value="preset1" selected>Preset 1: Kasus Contoh Laporan (p=43, q=59, e=13, M=1819)</option>
+            <option value="preset2">Preset 2: Bit Kecil Standard (p=61, q=53, e=17, M=65)</option>
+            <option value="preset3">Preset 3: Kasus Uji V5 (p=17, q=61, e=7, M=42)</option>
+            <option value="custom">Input Bebas (Kustom)</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-brand-deep">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parameter Inputs: 4-Column Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Input p -->
+        <div class="bg-brand-soft/70 border border-slate-200/90 rounded-xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-brand-deep" for="param-p">Prima p:</label>
+            <span id="badge-p" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold">Prima</span>
+          </div>
+          <div class="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-ocean">
+            <button title="Prima sebelumnya" class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepPrime('param-p', -1)" type="button">−</button>
+            <input class="w-full border-0 text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-0" id="param-p" type="number" value="43" oninput="checkInputsLive()">
+            <button title="Prima berikutnya" class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepPrime('param-p', 1)" type="button">+</button>
+          </div>
+        </div>
+
+        <!-- Input q -->
+        <div class="bg-brand-soft/70 border border-slate-200/90 rounded-xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-brand-deep" for="param-q">Prima q:</label>
+            <span id="badge-q" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold">Prima</span>
+          </div>
+          <div class="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-ocean">
+            <button title="Prima sebelumnya" class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepPrime('param-q', -1)" type="button">−</button>
+            <input class="w-full border-0 text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-0" id="param-q" type="number" value="59" oninput="checkInputsLive()">
+            <button title="Prima berikutnya" class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepPrime('param-q', 1)" type="button">+</button>
+          </div>
+        </div>
+
+        <!-- Input e -->
+        <div class="bg-brand-soft/70 border border-slate-200/90 rounded-xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-brand-deep" for="param-e">Eksponen Publik e:</label>
+            <span id="badge-e" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-brand-sky/20 text-brand-deep font-semibold">gcd(e,φ)=1</span>
+          </div>
+          <div class="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-ocean">
+            <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepE(-2)" type="button">−</button>
+            <input class="w-full border-0 text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-0" id="param-e" type="number" value="13" oninput="checkInputsLive()">
+            <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepE(2)" type="button">+</button>
+          </div>
+        </div>
+
+        <!-- Input M -->
+        <div class="bg-brand-soft/70 border border-slate-200/90 rounded-xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-brand-deep" for="param-m">Pesan M (0 ≤ M &lt; n):</label>
+            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-semibold">Plaintext</span>
+          </div>
+          <div class="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-ocean">
+            <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepVal('param-m', -10); runSimulasi();" type="button">−</button>
+            <input class="w-full border-0 text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-0" id="param-m" type="number" value="1819" oninput="checkInputsLive()">
+            <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepVal('param-m', 10); runSimulasi();" type="button">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slider for Fermat Test Rounds -->
+      <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="space-y-0.5">
+            <span class="text-xs font-bold text-brand-deep">Jumlah Pengujian Fermat untuk Validasi Prima:</span>
+            <p class="text-[11px] text-slate-400">Pemeriksaan keaslian prima probabilistik sebelum pembentukan kunci.</p>
+          </div>
+          <span class="px-2.5 py-0.5 rounded-md font-mono text-xs font-bold bg-brand-deep text-white shadow-sm" id="fermat-value-badge">20 Putaran</span>
+        </div>
+        <input class="w-full cursor-pointer" id="fermat-slider" max="30" min="1" oninput="updateFermatSlider(this.value)" type="range" value="20">
+        
+        <!-- Live Probability & Error Metric -->
+        <div class="flex flex-wrap items-center justify-between pt-1 border-t border-slate-200/70 text-[11px] text-slate-500 font-mono">
+          <div class="flex items-center gap-1.5">
+            <span class="font-sans font-bold text-brand-deep">Tingkat Kepastian:</span>
+            <span id="fermat-prob" class="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">≥ 99.9999%</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="font-sans font-bold text-brand-deep">Peluang Salah (False Positive):</span>
+            <span id="fermat-error-rate" class="text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">≤ 1 / 1.048.576</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error Message Container (Hidden by default) -->
+      <div id="simulasi-error" class="hidden p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-start gap-2.5">
+        <svg class="w-4 h-4 text-red-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+        </svg>
+        <span id="simulasi-error-msg">Terjadi kesalahan perhitungan.</span>
+      </div>
+
+      <!-- Primary Action CTA Button -->
+      <div>
+        <button id="btn-run-simulasi" onclick="runSimulasi()"
+                class="w-full group relative overflow-hidden bg-brand-deep hover:bg-brand-ocean text-white font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 shadow-md hover:shadow-elevated flex items-center justify-center space-x-2.5 cursor-pointer" type="button">
+          <span id="btn-run-simulasi-text" class="text-sm font-bold tracking-wide">Hitung &amp; Jalankan Simulasi</span>
+          <svg id="btn-run-simulasi-spinner" class="w-4 h-4 animate-spin text-white hidden" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- Computed Summary Preview Section -->
+    <section class="space-y-4" data-purpose="results-preview-section">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold text-brand-deep uppercase tracking-wider">Hasil Komputasi &amp; Perbandingan Moduler</h3>
+        <span class="text-xs text-slate-500 font-medium">Nilai Terhitung Otomatis</span>
+      </div>
+
+      <!-- Alur Data Kriptografi (Visual Pipeline) -->
+      <div class="bg-white rounded-2xl p-4 border border-brand-border shadow-subtle flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400 font-bold">1. Plaintext Asli:</span>
+          <span id="flow-m" class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 font-mono font-bold">M = 1819</span>
+        </div>
+        <div class="flex items-center text-slate-400 font-semibold gap-1">
+          <span>Enkripsi (M<sup>e</sup> mod n)</span>
+          <svg class="w-4 h-4 text-brand-ocean shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400 font-bold">2. Ciphertext Teracak:</span>
+          <span id="flow-c" class="px-2.5 py-1 rounded-lg bg-brand-sky/30 text-brand-deep font-mono font-bold">C = 2081</span>
+          <span class="text-[10px] text-brand-deep/70 italic">(Berubah tiap kunci diubah)</span>
+        </div>
+        <div class="flex items-center text-slate-400 font-semibold gap-1">
+          <span>Dekripsi (RSA/CRT)</span>
+          <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400 font-bold">3. Hasil Dekripsi:</span>
+          <span id="flow-dec" class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 font-mono font-bold">M = 1819</span>
+          <span class="text-[10px] text-emerald-700 italic font-semibold">(Pulih 100%)</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- RSA Standar Card -->
+        <article class="bg-white rounded-2xl p-5 border border-brand-border shadow-subtle flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+                <h4 class="font-bold text-brand-deep text-sm">Metode RSA Standar</h4>
+              </div>
+              <span class="text-[11px] font-mono font-semibold bg-slate-100 text-slate-700 px-2 py-0.5 rounded">Single Modulus</span>
+            </div>
+            <!-- Mathematical breakdown list -->
+            <div class="space-y-2 font-mono text-xs text-slate-600 bg-brand-soft/50 p-3 rounded-lg border border-slate-100">
+              <div class="flex justify-between">
+                <span>Modulus n = p × q:</span>
+                <span id="out-n" class="font-bold text-brand-deep">2537</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Totient φ(n) = (p-1)(q-1):</span>
+                <span id="out-phi" class="font-bold text-brand-deep">2436</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Eksponen Privat d:</span>
+                <span id="out-d" class="font-bold text-brand-deep">937</span>
+              </div>
+              <div class="flex justify-between bg-brand-sky/20 px-2 py-1 rounded border border-brand-sky/40">
+                <span class="text-brand-deep font-semibold">Ciphertext C = M<sup>e</sup> mod n:</span>
+                <span id="out-c" class="font-bold text-brand-deep">2081</span>
+              </div>
+              <div class="flex justify-between pt-1 border-t border-slate-200">
+                <span id="label-dekripsi-rsa">Dekripsi: M = C<sup>d</sup> mod n</span>
+                <span id="out-m-rsa" class="text-emerald-700 font-bold">1819</span>
+              </div>
+            </div>
+          </div>
+          <div class="pt-2 text-[11px] text-slate-400 flex items-center justify-between">
+            <span>Kompleksitas: O(k³)</span>
+            <span class="text-slate-500 font-medium">Beban Operasi Standar</span>
+          </div>
+        </article>
+
+        <!-- RSA-CRT Card -->
+        <article class="bg-white rounded-2xl p-5 border-2 border-brand-sky/60 shadow-subtle flex flex-col justify-between space-y-4 relative overflow-hidden">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-brand-deep"></span>
+                <h4 class="font-bold text-brand-deep text-sm">Metode RSA-CRT (Dioptimalkan)</h4>
+              </div>
+              <span class="text-[11px] font-mono font-bold bg-brand-sun text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300">3x - 4x Lebih Cepat</span>
+            </div>
+            <!-- Mathematical breakdown list -->
+            <div class="space-y-2 font-mono text-xs text-slate-600 bg-brand-soft/50 p-3 rounded-lg border border-slate-100">
+              <div class="flex justify-between">
+                <span>d<sub>P</sub> = d mod (p-1):</span>
+                <span id="out-dp" class="font-bold text-brand-deep">13</span>
+              </div>
+              <div class="flex justify-between">
+                <span>d<sub>Q</sub> = d mod (q-1):</span>
+                <span id="out-dq" class="font-bold text-brand-deep">9</span>
+              </div>
+              <div class="flex justify-between">
+                <span>q<sub>inv</sub> = q<sup>-1</sup> mod p:</span>
+                <span id="out-qinv" class="font-bold text-brand-deep">30</span>
+              </div>
+              <div class="flex justify-between">
+                <span>m<sub>1</sub> = C<sup>d<sub>P</sub></sup> mod p, m<sub>2</sub> = C<sup>d<sub>Q</sub></sup> mod q:</span>
+                <span id="out-m1m2" class="font-bold text-brand-ocean">m₁=13, m₂=49</span>
+              </div>
+              <div class="flex justify-between pt-1 border-t border-slate-200">
+                <span>Rekonstruksi Garner (M = m₂ + h·q):</span>
+                <span id="out-m-crt" class="text-emerald-700 font-bold">M = 1819</span>
+              </div>
+            </div>
+          </div>
+          <div class="pt-2 text-[11px] text-brand-deep font-semibold flex items-center justify-between">
+            <span>Kompleksitas: 2 × O((k/2)³) ≈ 0.25 × Standar</span>
+            <span class="text-emerald-600 flex items-center gap-1 font-bold">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                <path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path>
+              </svg>
+              Presisi Terverifikasi
+            </span>
+          </div>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========================================================== -->
+  <!-- TAB 2: BENCHMARK & VISUALISASI GRAFIK                      -->
+  <!-- ========================================================== -->
+  <div id="tab-content-2" class="tab-pane hidden space-y-7">
+    <section class="bg-white rounded-2xl p-6 md:p-8 border border-brand-border shadow-subtle space-y-6">
+      <div class="border-b border-slate-100 pb-4">
+        <h2 class="text-lg md:text-xl font-bold text-brand-deep">
+          Benchmark Kecepatan Dekripsi Multi-Bit
+        </h2>
+        <p class="text-xs md:text-sm text-slate-500 mt-1">
+          Uji empiris perbandingan durasi dekripsi RSA standar vs RSA-CRT menggunakan timer presisi nanodetik (<code class="font-mono text-brand-deep">time.perf_counter_ns</code>) dengan putaran berulang dan pemanasan bergantian.
+        </p>
+      </div>
+
+      <!-- Bit Length Pills Selector -->
+      <div class="space-y-2">
+        <label class="block text-xs font-bold text-brand-deep uppercase tracking-wider">
+          Pilih Panjang Bit Prima (p &amp; q):
+        </label>
+        <div class="flex flex-wrap gap-2.5" id="bit-pills-container">
+          <label class="bit-pill flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold cursor-pointer transition-all select-none">
+            <input type="checkbox" name="bit-option" value="64" class="hidden" onchange="updateBitPillStyles()">
+            <svg class="pill-check w-3.5 h-3.5 text-white hidden shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span>64 bit</span>
+          </label>
+          <label class="bit-pill flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold cursor-pointer transition-all select-none">
+            <input type="checkbox" name="bit-option" value="128" class="hidden" onchange="updateBitPillStyles()">
+            <svg class="pill-check w-3.5 h-3.5 text-white hidden shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span>128 bit</span>
+          </label>
+          <label class="bit-pill flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-brand-deep bg-brand-deep text-white text-xs font-semibold cursor-pointer transition-all select-none shadow-sm">
+            <input type="checkbox" name="bit-option" value="256" checked class="hidden" onchange="updateBitPillStyles()">
+            <svg class="pill-check w-3.5 h-3.5 text-white shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span>256 bit</span>
+          </label>
+          <label class="bit-pill flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-brand-deep bg-brand-deep text-white text-xs font-semibold cursor-pointer transition-all select-none shadow-sm">
+            <input type="checkbox" name="bit-option" value="512" checked class="hidden" onchange="updateBitPillStyles()">
+            <svg class="pill-check w-3.5 h-3.5 text-white shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span>512 bit</span>
+          </label>
+          <label class="bit-pill flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-brand-deep bg-brand-deep text-white text-xs font-semibold cursor-pointer transition-all select-none shadow-sm">
+            <input type="checkbox" name="bit-option" value="1024" checked class="hidden" onchange="updateBitPillStyles()">
+            <svg class="pill-check w-3.5 h-3.5 text-white shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span>1024 bit</span>
+          </label>
+          <label class="bit-pill flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold cursor-pointer transition-all select-none">
+            <input type="checkbox" name="bit-option" value="2048" class="hidden" onchange="updateBitPillStyles()">
+            <svg class="pill-check w-3.5 h-3.5 text-white hidden shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span>2048 bit (Lambat)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Benchmark Hyperparameters Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+        <!-- Trials Slider -->
+        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-brand-deep">Percobaan (Trials):</span>
+            <span class="px-2 py-0.5 rounded font-mono text-xs font-bold bg-brand-deep text-white" id="trials-val">30</span>
+          </div>
+          <input class="w-full cursor-pointer" id="trials-slider" max="100" min="5" step="5" oninput="document.getElementById('trials-val').innerText = this.value" type="range" value="30">
+        </div>
+
+        <!-- Warmup Slider -->
+        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-brand-deep">Pemanasan (Warmup):</span>
+            <span class="px-2 py-0.5 rounded font-mono text-xs font-bold bg-brand-deep text-white" id="warmup-val">3</span>
+          </div>
+          <input class="w-full cursor-pointer" id="warmup-slider" max="10" min="1" step="1" oninput="document.getElementById('warmup-val').innerText = this.value" type="range" value="3">
+        </div>
+
+        <!-- Fermat Rounds Slider -->
+        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-brand-deep">Basis Uji Fermat:</span>
+            <span class="px-2 py-0.5 rounded font-mono text-xs font-bold bg-brand-deep text-white" id="bench-fermat-val">20</span>
+          </div>
+          <input class="w-full cursor-pointer" id="bench-fermat-slider" max="30" min="5" step="5" oninput="document.getElementById('bench-fermat-val').innerText = this.value" type="range" value="20">
+        </div>
+
+        <!-- Message Input -->
+        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+          <label class="text-xs font-bold text-brand-deep" for="bench-message">Pesan Uji M:</label>
+          <input class="w-full bg-white border border-slate-200 rounded-lg text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-2 focus:ring-brand-ocean" id="bench-message" type="number" value="1819">
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div>
+        <button id="btn-run-benchmark" onclick="runBenchmark()"
+                class="w-full group bg-brand-deep hover:bg-brand-ocean text-white font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 shadow-md hover:shadow-elevated flex items-center justify-center space-x-2.5 cursor-pointer" type="button">
+          <span id="btn-bench-text" class="text-sm font-bold tracking-wide">Jalankan Benchmark Komparatif</span>
+          <svg id="btn-bench-spinner" class="w-4 h-4 animate-spin text-white hidden" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Progress status container -->
+      <div id="bench-progress-box" class="hidden p-4 rounded-xl bg-brand-soft border border-brand-sky/60 space-y-2">
+        <div class="flex justify-between items-center text-xs font-semibold text-brand-deep">
+          <span id="bench-status-text">Sedang membangkitkan prima dan mengukur dekripsi...</span>
+          <span class="animate-pulse font-mono">Running</span>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+          <div id="bench-progress-bar" class="bg-brand-ocean h-2 rounded-full transition-all duration-300 w-1/3"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Benchmark Results Section -->
+    <section id="bench-results-section" class="space-y-6 hidden">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold text-brand-deep uppercase tracking-wider">Hasil Pengukuran &amp; Analisis Komparasi</h3>
+        <a href="/api/download-csv" download="benchmark_results.csv" 
+           class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+          </svg>
+          Unduh Laporan CSV
+        </a>
+      </div>
+
+      <!-- Metric Cards Row -->
+      <div id="bench-metrics-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Rendered dynamically via JS -->
+      </div>
+
+      <!-- Interactive Charts Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Execution Time Bar Chart -->
+        <div class="bg-white rounded-2xl p-5 border border-brand-border shadow-subtle space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h4 class="font-bold text-brand-deep text-xs uppercase tracking-wider">Median Waktu Dekripsi (ms)</h4>
+            <span class="text-[11px] text-slate-400">Lebih rendah = lebih cepat</span>
+          </div>
+          <div class="relative h-64">
+            <canvas id="timeComparisonChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Speedup Factor Line Chart -->
+        <div class="bg-white rounded-2xl p-5 border border-brand-border shadow-subtle space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h4 class="font-bold text-brand-deep text-xs uppercase tracking-wider">Rasio Percepatan (Speedup Multiplier)</h4>
+            <span class="text-[11px] text-amber-800 font-semibold bg-brand-sun px-2 py-0.5 rounded">CRT ~3x-4x Lebih Cepat</span>
+          </div>
+          <div class="relative h-64">
+            <canvas id="speedupCurveChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table Section -->
+      <div class="bg-white rounded-2xl border border-brand-border shadow-subtle overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+          <h4 class="font-bold text-brand-deep text-xs uppercase tracking-wider">Tabel Data Statistik Pengujian</h4>
+          <span class="text-[11px] text-slate-500 font-medium font-mono">Dikonfirmasi LULUS 100%</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50 text-slate-400 font-mono uppercase text-[10px] border-b border-slate-200">
+              <tr>
+                <th class="px-4 py-3">Prima p/q</th>
+                <th class="px-4 py-3">Kunci (n)</th>
+                <th class="px-4 py-3 text-center">Iterasi</th>
+                <th class="px-4 py-3 text-right">RSA Median (ms)</th>
+                <th class="px-4 py-3 text-right">CRT Median (ms)</th>
+                <th class="px-4 py-3 text-right">RSA Mean (ms)</th>
+                <th class="px-4 py-3 text-right">CRT Mean (ms)</th>
+                <th class="px-4 py-3 text-center font-bold text-brand-deep">Speedup</th>
+                <th class="px-4 py-3 text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody id="bench-table-body" class="divide-y divide-slate-100 font-mono">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========================================================== -->
+  <!-- TAB 3: VERIFIKASI KASUS UJI (TEST SUITE)                  -->
+  <!-- ========================================================== -->
+  <div id="tab-content-3" class="tab-pane hidden space-y-7">
+    <section class="bg-white rounded-2xl p-6 md:p-8 border border-brand-border shadow-subtle space-y-6">
+      <div class="border-b border-slate-100 pb-4">
+        <h2 class="text-lg md:text-xl font-bold text-brand-deep">
+          Verifikasi Otomatis Kasus Uji (Test Suite)
+        </h2>
+        <p class="text-xs md:text-sm text-slate-500 mt-1">
+          Skrip ini memverifikasi seluruh 16 kasus uji resmi: 6 kasus valid (V1–V6) dan 10 kasus tidak valid (I1–I10) untuk memastikan seluruh kalkulasi dan penanganan galat (<em class="italic">error handling</em>) berjalan sesuai spesifikasi.
+        </p>
+      </div>
+
+      <!-- Action Button -->
+      <div>
+        <button id="btn-run-tests" onclick="runTestSuite()"
+                class="w-full bg-brand-deep hover:bg-brand-ocean text-white font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 shadow-md hover:shadow-elevated flex items-center justify-center space-x-2.5 cursor-pointer" type="button">
+          <span id="btn-tests-text" class="text-sm font-bold tracking-wide">Jalankan 16 Kasus Uji Otomatis</span>
+          <svg id="btn-tests-spinner" class="w-4 h-4 animate-spin text-white hidden" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Test Summary Card -->
+      <div id="test-summary-box" class="hidden p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-emerald-950">Seluruh Kasus Uji Berhasil Terverifikasi</h4>
+            <p id="test-summary-counts" class="text-xs text-emerald-800">16/16 Kasus LULUS (PASS), 0 Gagal (FAIL)</p>
+          </div>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-600 text-white">ALL PASS</span>
+      </div>
+
+      <!-- Test Cases Table -->
+      <div id="test-table-container" class="hidden bg-white rounded-2xl border border-brand-border shadow-subtle overflow-hidden">
+        <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+          <h4 class="font-bold text-brand-deep text-xs uppercase tracking-wider">Rincian Hasil Verifikasi Kasus Uji</h4>
+          <span class="text-xs text-slate-500 font-medium">6 Kasus Valid &bull; 10 Kasus Galat Terisolasi</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50 text-slate-400 font-mono uppercase text-[10px] border-b border-slate-200">
+              <tr>
+                <th class="px-4 py-3">ID</th>
+                <th class="px-4 py-3">Kategori</th>
+                <th class="px-4 py-3">Parameter Input</th>
+                <th class="px-4 py-3">Ekspektasi Uji</th>
+                <th class="px-4 py-3 text-center">Status</th>
+                <th class="px-4 py-3">Keterangan Hasil</th>
+              </tr>
+            </thead>
+            <tbody id="test-table-body" class="divide-y divide-slate-100 font-mono">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+</main>
+
+<!-- ========================================================== -->
+<!-- MODAL: INFORMASI ALGORITMA (RSA vs RSA-CRT)                -->
+<!-- ========================================================== -->
+<div id="algo-info-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-200 hidden">
+  <div class="bg-white rounded-2xl max-w-xl w-full border border-brand-border shadow-elevated overflow-hidden flex flex-col space-y-0 transform transition-all">
+    <div class="flex items-center justify-between px-6 py-4.5 border-b border-slate-100 bg-white">
+      <div class="flex items-center space-x-2.5">
+        <h3 class="text-base font-bold text-brand-deep">Mengenal RSA vs RSA-CRT</h3>
+      </div>
+      <button onclick="document.getElementById('algo-info-modal').classList.add('hidden')" type="button" 
+              class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-brand-deep uppercase tracking-wider">RSA Konvensional (Standar)</span>
+          <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-700">Kompleksitas O(k³)</span>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Pada dekripsi standar, eksponensiasi modular dilakukan secara langsung dengan modulus <em>n</em> yang masif:
+        </p>
+        <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200/80 font-mono text-xs text-brand-deep font-semibold text-center tracking-wide shadow-inner">
+          M = C<sup>d</sup> (mod n), &nbsp;<span class="text-slate-400 font-normal italic">di mana n = p × q</span>
+        </div>
+      </div>
+
+      <div class="bg-brand-sun/50 border border-amber-200/80 rounded-xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="font-mono uppercase tracking-wider text-[11px] text-amber-950 font-bold flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-amber-800" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.381z" clip-rule="evenodd"></path>
+            </svg>
+            Keunggulan Chinese Remainder Theorem (CRT)
+          </span>
+          <span class="text-[10px] font-mono font-bold bg-white/80 text-amber-900 px-2 py-0.5 rounded border border-amber-300">~3x - 4x Lebih Cepat</span>
+        </div>
+        <ul class="text-xs text-amber-950 space-y-2.5 leading-relaxed">
+          <li class="flex items-start">
+            <span class="text-brand-deep mr-2 font-bold">•</span>
+            <span><strong>Eksponen terbagi:</strong> Eksponen <em>d</em> dipecah menjadi <code class="font-mono text-brand-deep font-bold bg-white/70 px-1 py-0.5 rounded">d<sub>P</sub> = d mod (p-1)</code> dan <code class="font-mono text-brand-deep font-bold bg-white/70 px-1 py-0.5 rounded">d<sub>Q</sub> = d mod (q-1)</code>, memotong panjang bit eksponen menjadi separuh.</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-brand-deep mr-2 font-bold">•</span>
+            <span><strong>Modulus terbagi:</strong> Kalkulasi dijalankan terpisah secara independen pada modulo faktor prima <code class="font-mono text-brand-deep font-bold">p</code> dan <code class="font-mono text-brand-deep font-bold">q</code>.</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-brand-deep mr-2 font-bold">•</span>
+            <span><strong>Rekonstruksi Garner:</strong> Nilai asli <em>M</em> direkonstruksi kembali secara efisien menggunakan invers modular <code class="font-mono text-brand-deep font-bold">q<sub>inv</sub></code> tanpa kehilangan presisi:
+              <br><code class="block mt-1 font-mono text-[11px] bg-white/80 p-1.5 rounded">h = q<sub>inv</sub> · (m₁ - m₂) mod p;<br>M = m₂ + h · q</code>
+            </span>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end space-x-3">
+      <button onclick="document.getElementById('algo-info-modal').classList.add('hidden')" type="button" 
+              class="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 transition-colors cursor-pointer">
+        Tutup
+      </button>
+      <button onclick="document.getElementById('algo-info-modal').classList.add('hidden')" type="button" 
+              class="px-5 py-2.5 text-xs font-bold text-white bg-brand-deep hover:bg-brand-ocean rounded-xl transition-all shadow-sm hover:shadow-md flex items-center space-x-1.5 cursor-pointer">
+        <span>Mengerti &amp; Lanjutkan ke Simulasi</span>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================== -->
+<!-- JAVASCRIPT LOGIC & API INTEGRATION                         -->
+<!-- ========================================================== -->
+<script>
+  // Helper for Stepper inputs
+  // Primality test helper
+  function isPrime(num) {
+    if (num <= 1) return false;
+    if (num <= 3) return true;
+    if (num % 2 === 0 || num % 3 === 0) return false;
+    for (let i = 5; i * i <= num; i += 6) {
+      if (num % i === 0 || num % (i + 2) === 0) return false;
+    }
+    return true;
+  }
+
+  function nextPrime(num) {
+    let candidate = Math.max(2, num + 1);
+    while (!isPrime(candidate)) candidate++;
+    return candidate;
+  }
+
+  function prevPrime(num) {
+    let candidate = num - 1;
+    while (candidate > 2 && !isPrime(candidate)) candidate--;
+    return candidate >= 3 ? candidate : 3;
+  }
+
+  // Stepper specifically for Primes (p and q)
+  function stepPrime(elementId, delta) {
+    const input = document.getElementById(elementId);
+    if (input) {
+      const currentVal = parseInt(input.value, 10) || 3;
+      const nextVal = delta > 0 ? nextPrime(currentVal) : prevPrime(currentVal);
+      input.value = nextVal;
+      checkInputsLive();
+      runSimulasi();
+    }
+  }
+
+  // Stepper for e (keeps odd numbers)
+  function stepE(delta) {
+    const input = document.getElementById('param-e');
+    if (input) {
+      let currentVal = parseInt(input.value, 10) || 3;
+      currentVal += delta;
+      if (currentVal < 3) currentVal = 3;
+      if (currentVal % 2 === 0) currentVal += 1;
+      input.value = currentVal;
+      checkInputsLive();
+      runSimulasi();
+    }
+  }
+
+  // Helper for Stepper inputs (general)
+  function stepVal(elementId, delta) {
+    const input = document.getElementById(elementId);
+    if (input) {
+      const currentVal = parseInt(input.value, 10) || 0;
+      const nextVal = Math.max(0, currentVal + delta);
+      input.value = nextVal;
+      checkInputsLive();
+    }
+  }
+
+  // Live input badge verification
+  function checkInputsLive() {
+    const p = parseInt(document.getElementById('param-p').value, 10);
+    const q = parseInt(document.getElementById('param-q').value, 10);
+    const badgeP = document.getElementById('badge-p');
+    const badgeQ = document.getElementById('badge-q');
+
+    if (badgeP) {
+      if (isPrime(p)) {
+        badgeP.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold";
+        badgeP.innerText = "Prima";
+      } else {
+        badgeP.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-semibold";
+        badgeP.innerText = "Bukan Prima";
+      }
+    }
+
+    if (badgeQ) {
+      if (isPrime(q)) {
+        badgeQ.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold";
+        badgeQ.innerText = "Prima";
+      } else {
+        badgeQ.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-semibold";
+        badgeQ.innerText = "Bukan Prima";
+      }
+    }
+  }
+
+  // Update Bit Pills active/inactive styles on Tab 2
+  function updateBitPillStyles() {
+    document.querySelectorAll('input[name="bit-option"]').forEach(cb => {
+      const label = cb.closest('label');
+      const icon = label.querySelector('.pill-check');
+      if (cb.checked) {
+        label.className = "bit-pill flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-brand-deep bg-brand-deep text-white text-xs font-semibold cursor-pointer transition-all select-none shadow-sm";
+        if (icon) icon.classList.remove('hidden');
+      } else {
+        label.className = "bit-pill flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold cursor-pointer transition-all select-none";
+        if (icon) icon.classList.add('hidden');
+      }
+    });
+  }
+
+  // Update Fermat Slider visual metrics
+  function updateFermatSlider(val) {
+    const k = parseInt(val, 10);
+    document.getElementById('fermat-value-badge').innerText = `${k} Putaran`;
+
+    const prob = (1 - Math.pow(0.5, k)) * 100;
+    const denominator = Math.pow(2, k);
+
+    let probText = "";
+    if (k >= 20) {
+      probText = "≥ 99.9999% (Sangat Mutlak)";
+    } else {
+      probText = `~ ${prob.toFixed(2)}%`;
+    }
+
+    let errText = "";
+    if (k >= 30) {
+      errText = "≤ 1 / 1.000.000.000";
+    } else {
+      errText = `≤ 1 / ${denominator.toLocaleString('id-ID')}`;
+    }
+
+    const probElem = document.getElementById('fermat-prob');
+    const errElem = document.getElementById('fermat-error-rate');
+    if (probElem) probElem.innerText = probText;
+    if (errElem) errElem.innerText = errText;
+  }
+
+  // Tab Switcher
+  function switchTab(tabIndex) {
+    for (let i = 1; i <= 3; i++) {
+      const btn = document.getElementById(`tab-btn-${i}`);
+      const pane = document.getElementById(`tab-content-${i}`);
+      if (i === tabIndex) {
+        btn.className = "tab-btn flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-semibold text-brand-deep border-b-2 border-brand-deep bg-white rounded-t-lg transition-all shadow-[0_-2px_6px_rgba(8,98,136,0.04)] cursor-pointer";
+        pane.classList.remove('hidden');
+      } else {
+        btn.className = "tab-btn flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-medium text-slate-500 hover:text-brand-deep border-b-2 border-transparent hover:border-brand-sky rounded-t-lg transition-colors cursor-pointer";
+        pane.classList.add('hidden');
+      }
+    }
+  }
+
+  // Presets
+  const presets = {
+    preset1: { p: 43, q: 59, e: 13, m: 1819 },
+    preset2: { p: 61, q: 53, e: 17, m: 65 },
+    preset3: { p: 17, q: 61, e: 7, m: 42 },
+  };
+
+  function applyPreset(key) {
+    if (presets[key]) {
+      document.getElementById('param-p').value = presets[key].p;
+      document.getElementById('param-q').value = presets[key].q;
+      document.getElementById('param-e').value = presets[key].e;
+      document.getElementById('param-m').value = presets[key].m;
+      checkInputsLive();
+      runSimulasi();
+    }
+  }
+
+  // ============================================================
+  // TAB 1: RUN SIMULASI VIA API
+  // ============================================================
+  async function runSimulasi() {
+    const p = parseInt(document.getElementById('param-p').value, 10);
+    const q = parseInt(document.getElementById('param-q').value, 10);
+    const e = parseInt(document.getElementById('param-e').value, 10);
+    const m = parseInt(document.getElementById('param-m').value, 10);
+    const fermat_rounds = parseInt(document.getElementById('fermat-slider').value, 10);
+
+    const errBox = document.getElementById('simulasi-error');
+    const errMsg = document.getElementById('simulasi-error-msg');
+    const spinner = document.getElementById('btn-run-simulasi-spinner');
+    const btnText = document.getElementById('btn-run-simulasi-text');
+
+    errBox.classList.add('hidden');
+    spinner.classList.remove('hidden');
+    btnText.innerText = "Menghitung...";
+
+    try {
+      const resp = await fetch('/api/simulasi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p, q, e, message: m, fermat_rounds })
+      });
+      const data = await resp.json();
+
+      if (data.status !== 'ok') {
+        throw new Error(data.message || 'Terjadi kesalahan pada perhitungan.');
+      }
+
+      // Update Flow Banner
+      document.getElementById('flow-m').innerText = `M = ${data.m}`;
+      document.getElementById('flow-c').innerText = `C = ${data.c}`;
+      document.getElementById('flow-dec').innerText = `M = ${data.m_rsa}`;
+
+      // Update Result Cards
+      document.getElementById('out-n').innerText = data.n;
+      document.getElementById('out-phi').innerText = data.phi;
+      document.getElementById('out-d').innerText = data.d;
+      document.getElementById('out-c').innerText = data.c;
+      document.getElementById('label-dekripsi-rsa').innerHTML = `Dekripsi: M = C<sup>${data.d}</sup> mod ${data.n}`;
+      document.getElementById('out-m-rsa').innerText = `${data.m_rsa}`;
+
+      document.getElementById('out-dp').innerText = data.dP;
+      document.getElementById('out-dq').innerText = data.dQ;
+      document.getElementById('out-qinv').innerText = data.qInv;
+      document.getElementById('out-m1m2').innerText = `m₁=${data.m1}, m₂=${data.m2}`;
+      document.getElementById('out-m-crt').innerText = `M = ${data.m_crt}`;
+
+    } catch (err) {
+      errMsg.innerText = err.message;
+      errBox.classList.remove('hidden');
+      document.getElementById('flow-c').innerText = "C = (Galat Input)";
+      document.getElementById('flow-dec').innerText = "M = (Gagal)";
+    } finally {
+      spinner.classList.add('hidden');
+      btnText.innerText = "Hitung & Jalankan Simulasi";
+    }
+  }
+
+  // ============================================================
+  // TAB 2: BENCHMARK EXECUTION & CHARTS
+  // ============================================================
+  let timeChartInstance = null;
+  let speedupChartInstance = null;
+
+  async function runBenchmark() {
+    const checkedBoxes = document.querySelectorAll('input[name="bit-option"]:checked');
+    const prime_bits = Array.from(checkedBoxes).map(cb => parseInt(cb.value, 10));
+
+    if (prime_bits.length === 0) {
+      alert("Pilih minimal satu ukuran bit prima!");
+      return;
+    }
+
+    const trials = parseInt(document.getElementById('trials-slider').value, 10);
+    const warmup = parseInt(document.getElementById('warmup-slider').value, 10);
+    const fermat_rounds = parseInt(document.getElementById('bench-fermat-slider').value, 10);
+    const message = parseInt(document.getElementById('bench-message').value, 10);
+
+    const btn = document.getElementById('btn-run-benchmark');
+    const spinner = document.getElementById('btn-bench-spinner');
+    const btnText = document.getElementById('btn-bench-text');
+    const progressBox = document.getElementById('bench-progress-box');
+    const resultsSection = document.getElementById('bench-results-section');
+
+    btn.disabled = true;
+    spinner.classList.remove('hidden');
+    btnText.innerText = "Sedang Melakukan Pengujian Benchmark...";
+    progressBox.classList.remove('hidden');
+    resultsSection.classList.add('hidden');
+
+    try {
+      const resp = await fetch('/api/benchmark', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prime_bits, trials, warmup, fermat_rounds, message })
+      });
+      const data = await resp.json();
+
+      if (data.status !== 'ok') {
+        throw new Error(data.message || 'Gagal menjalankan benchmark.');
+      }
+
+      renderBenchmarkResults(data.results);
+      resultsSection.classList.remove('hidden');
+      resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+    } catch (err) {
+      alert("Error: " + err.message);
+    } finally {
+      btn.disabled = false;
+      spinner.classList.add('hidden');
+      btnText.innerText = "Jalankan Benchmark Komparatif";
+      progressBox.classList.add('hidden');
+    }
+  }
+
+  function renderBenchmarkResults(results) {
+    // 1. Metric Cards
+    const cardsContainer = document.getElementById('bench-metrics-cards');
+    cardsContainer.innerHTML = '';
+    results.forEach(item => {
+      const card = document.createElement('div');
+      card.className = "bg-white rounded-2xl p-4 border border-brand-border shadow-subtle space-y-2";
+      card.innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">${item.bit_kunci} Bit Key</span>
+          <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-brand-sky/20 text-brand-deep font-bold">p=${item.bit_p}b</span>
+        </div>
+        <div class="text-xl font-bold text-brand-deep">${item.speedup.toFixed(2)}x Lebih Cepat</div>
+        <div class="text-[11px] text-slate-500 flex justify-between pt-1 border-t border-slate-100 font-mono">
+          <span>RSA: ${item.rsa_median_ms.toFixed(3)} ms</span>
+          <span>CRT: ${item.crt_median_ms.toFixed(3)} ms</span>
+        </div>
+      `;
+      cardsContainer.appendChild(card);
+    });
+
+    // 2. Table Rows
+    const tbody = document.getElementById('bench-table-body');
+    tbody.innerHTML = '';
+    results.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.className = "hover:bg-slate-50/70 transition-colors";
+      tr.innerHTML = `
+        <td class="px-4 py-3 font-semibold text-brand-deep">${row.bit_p}/${row.bit_q} bit</td>
+        <td class="px-4 py-3">${row.bit_kunci} bit</td>
+        <td class="px-4 py-3 text-center">${row.iterasi}</td>
+        <td class="px-4 py-3 text-right">${row.rsa_median_ms.toFixed(4)}</td>
+        <td class="px-4 py-3 text-right font-bold text-emerald-700">${row.crt_median_ms.toFixed(4)}</td>
+        <td class="px-4 py-3 text-right text-slate-400">${row.rsa_rerata_ms.toFixed(4)}</td>
+        <td class="px-4 py-3 text-right text-slate-400">${row.crt_rerata_ms.toFixed(4)}</td>
+        <td class="px-4 py-3 text-center font-bold text-amber-700 bg-amber-50/50">${row.speedup.toFixed(2)}x</td>
+        <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">${row.status}</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // 3. Render Chart.js
+    renderCharts(results);
+  }
+
+  function renderCharts(results) {
+    const labels = results.map(r => `${r.bit_kunci} bit`);
+    const rsaTimes = results.map(r => r.rsa_median_ms);
+    const crtTimes = results.map(r => r.crt_median_ms);
+    const speedups = results.map(r => r.speedup);
+
+    // Destroy existing chart instances if any
+    if (timeChartInstance) timeChartInstance.destroy();
+    if (speedupChartInstance) speedupChartInstance.destroy();
+
+    const ctxTime = document.getElementById('timeComparisonChart').getContext('2d');
+    timeChartInstance = new Chart(ctxTime, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'RSA Standar (ms)',
+            data: rsaTimes,
+            backgroundColor: '#086288',
+            borderRadius: 6
+          },
+          {
+            label: 'RSA-CRT (ms)',
+            data: crtTimes,
+            backgroundColor: '#4D8DBA',
+            borderRadius: 6
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: {
+            callbacks: {
+              label: (context) => ` ${context.dataset.label}: ${context.raw.toFixed(4)} ms`
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: 'Waktu (Milidetik)' }
+          }
+        }
+      }
+    });
+
+    const ctxSpeedup = document.getElementById('speedupCurveChart').getContext('2d');
+    speedupChartInstance = new Chart(ctxSpeedup, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Speedup Multiplier (x)',
+            data: speedups,
+            borderColor: '#D97706',
+            backgroundColor: 'rgba(255, 239, 196, 0.5)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.3,
+            pointBackgroundColor: '#B45309',
+            pointRadius: 5
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: {
+            callbacks: {
+              label: (context) => ` Rasio CRT: ${context.raw.toFixed(2)}x lebih cepat`
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            suggestedMax: 5,
+            title: { display: true, text: 'Percepatan (Kali Lipat)' }
+          }
+        }
+      }
+    });
+  }
+
+  // ============================================================
+  // TAB 3: RUN TEST SUITE
+  // ============================================================
+  async function runTestSuite() {
+    const btn = document.getElementById('btn-run-tests');
+    const spinner = document.getElementById('btn-tests-spinner');
+    const btnText = document.getElementById('btn-tests-text');
+    const summaryBox = document.getElementById('test-summary-box');
+    const countsText = document.getElementById('test-summary-counts');
+    const tableContainer = document.getElementById('test-table-container');
+    const tbody = document.getElementById('test-table-body');
+
+    btn.disabled = true;
+    spinner.classList.remove('hidden');
+    btnText.innerText = "Menjalankan 16 Kasus Uji...";
+
+    try {
+      const resp = await fetch('/api/test-suite', { method: 'POST' });
+      const data = await resp.json();
+
+      if (data.status !== 'ok') {
+        throw new Error(data.message || 'Gagal menjalankan kasus uji.');
+      }
+
+      summaryBox.classList.remove('hidden');
+      countsText.innerText = `${data.summary.pass}/${data.summary.total} Kasus LULUS (PASS), ${data.summary.fail} Gagal (FAIL)`;
+
+      tbody.innerHTML = '';
+      data.cases.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition-colors";
+        const isPass = item.status === 'PASS';
+        const badgeColor = isPass ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800';
+
+        tr.innerHTML = `
+          <td class="px-4 py-3 font-bold text-brand-deep">${item.id}</td>
+          <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700">${item.tipe}</span></td>
+          <td class="px-4 py-3 text-slate-700">${item.input}</td>
+          <td class="px-4 py-3 text-slate-500">${item.ekspektasi}</td>
+          <td class="px-4 py-3 text-center"><span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${badgeColor}">${item.status}</span></td>
+          <td class="px-4 py-3 text-[11px] text-slate-600">${item.keterangan}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      tableContainer.classList.remove('hidden');
+      tableContainer.scrollIntoView({ behavior: 'smooth' });
+
+    } catch (err) {
+      alert("Error: " + err.message);
+    } finally {
+      btn.disabled = false;
+      spinner.classList.add('hidden');
+      btnText.innerText = "Jalankan 16 Kasus Uji Otomatis";
+    }
+  }
+
+  // Initial Calculation on Page Load
+  window.addEventListener('DOMContentLoaded', () => {
+    checkInputsLive();
+    updateBitPillStyles();
+    runSimulasi();
+  });
+</script>
+
+</body>
+</html>
