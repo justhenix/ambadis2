@@ -5,6 +5,8 @@ Program ini dibuat untuk membandingkan waktu dekripsi RSA standar dan RSA-CRT pa
 Buka PowerShell di folder proyek, lalu cek dulu apakah semua contoh berjalan:
 
 ```powershell
+py .\test_rsa_benchmark.py
+# atau
 python .\test_rsa_benchmark.py
 ```
 
@@ -13,13 +15,13 @@ Tes akan menjalankan 16 kasus dan mencetak PASS atau FAIL untuk masing-masing ka
 Untuk mencoba hitungan dari laporan, masukkan p, q, e, dan M lewat terminal:
 
 ```powershell
-python .\rsa_benchmark.py --p 43 --q 59 --e 13 --message 1819
+py .\rsa_benchmark.py --p 43 --q 59 --e 13 --message 1819
 ```
 
 Kalau ingin mengukur waktu dengan prima yang lebih besar, biarkan program membangkitkan p dan q:
 
 ```powershell
-python .\rsa_benchmark.py --prime-bits 256 512 1024 --e 65537 --message 12345 --trials 100 --warmup 5 --fermat-rounds 20
+py .\rsa_benchmark.py --prime-bits 256 512 1024 --e 65537 --message 12345 --trials 100 --warmup 5 --fermat-rounds 20
 ```
 
 `--M` bisa dipakai sebagai pengganti `--message`. Pilih salah satu cara memasukkan prima: isi `--p` dan `--q` sekaligus, atau pakai `--prime-bits`. Tanpa opsi apa pun, program memakai prima 256/512/1024 bit, e=65537, M=1819, 30 percobaan, 3 pemanasan, dan 20 basis Fermat.
@@ -28,15 +30,19 @@ Hasilnya masuk ke `benchmark_results.csv` di folder skrip. Setiap benchmark yang
 
 ## Menjalankan Antarmuka Web (Web UI Dashboard)
 
-Selain lewat terminal CLI, Anda dapat menjalankan dashboard visual berbasis web menggunakan **Streamlit**:
+Selain lewat terminal CLI, Anda dapat menjalankan dashboard visual interaktif berbasis web (cukup dengan pustaka bawaan Python, tanpa perlu install library tambahan):
 
+**Cara 1 (Paling Mudah):**
+- Cukup **klik dua kali** file `run_web_ui.bat`.
+
+**Cara 2 (Lewat Terminal PowerShell / CMD):**
 ```powershell
 .\run_web_ui.bat
 # atau
-python -m streamlit run app.py
+py server.py
 ```
 
-Dashboard akan otomatis terbuka di browser pada `http://localhost:8501`. Fitur web meliputi:
+Browser Anda akan otomatis terbuka di `http://localhost:8000`. Fitur web meliputi:
 1. **Simulasi & Langkah Matematis**: Perhitungan step-by-step $n, \phi(n), d, d_P, d_Q, q_{inv}$, enkripsi $C$, dan komparasi dekripsi standar vs CRT.
 2. **Benchmark & Visualisasi Grafik**: Uji kecepatan multi-bit ($256, 512, 1024$ bit) dengan bar chart waktu eksekusi, line chart rasio *speedup*, dan tombol unduh CSV langsung.
 3. **Verifikasi Kasus Uji**: Menjalankan 16 kasus uji otomatis dengan badge status visual.
