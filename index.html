@@ -203,8 +203,8 @@
         <!-- Input M -->
         <div class="bg-brand-soft/70 border border-slate-200/90 rounded-xl p-3.5 space-y-2">
           <div class="flex items-center justify-between">
-            <label class="text-xs font-bold text-brand-deep" for="param-m">Pesan M (0 ≤ M &lt; n):</label>
-            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-semibold">Plaintext</span>
+            <label class="text-xs font-bold text-brand-deep whitespace-nowrap" for="param-m">Pesan M:</label>
+            <span id="badge-m" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-semibold whitespace-nowrap">0 ≤ M &lt; n</span>
           </div>
           <div class="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-ocean">
             <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepVal('param-m', -10); runSimulasi();" type="button">−</button>
@@ -267,28 +267,32 @@
       </div>
 
       <!-- Alur Data Kriptografi (Visual Pipeline) -->
-      <div class="bg-white rounded-2xl p-4 border border-brand-border shadow-subtle flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
-        <div class="flex items-center gap-2">
-          <span class="text-slate-400 font-bold">1. Plaintext Asli:</span>
-          <span id="flow-m" class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 font-mono font-bold">M = 1819</span>
+      <div class="bg-white rounded-2xl p-4 border border-brand-border shadow-subtle flex flex-col gap-2.5 text-xs">
+        <div class="flex flex-wrap items-center justify-between gap-2.5">
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="text-slate-400 font-bold">1. Plaintext:</span>
+            <span id="flow-m" class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 font-mono font-bold whitespace-nowrap">M = 1819</span>
+          </div>
+          <div class="flex items-center text-slate-400 font-semibold gap-1 shrink-0">
+            <span>Enkripsi (M<sup>e</sup> mod n)</span>
+            <svg class="w-4 h-4 text-brand-ocean shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="text-slate-400 font-bold">2. Ciphertext:</span>
+            <span id="flow-c" class="px-2.5 py-1 rounded-lg bg-brand-sky/30 text-brand-deep font-mono font-bold whitespace-nowrap">C = 2081</span>
+          </div>
+          <div class="flex items-center text-slate-400 font-semibold gap-1 shrink-0">
+            <span>Dekripsi (RSA/CRT)</span>
+            <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="text-slate-400 font-bold">3. Hasil Dekripsi:</span>
+            <span id="flow-dec" class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 font-mono font-bold whitespace-nowrap">M = 1819</span>
+            <span class="text-[10px] text-emerald-700 font-semibold whitespace-nowrap">(Pulih 100%)</span>
+          </div>
         </div>
-        <div class="flex items-center text-slate-400 font-semibold gap-1">
-          <span>Enkripsi (M<sup>e</sup> mod n)</span>
-          <svg class="w-4 h-4 text-brand-ocean shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-slate-400 font-bold">2. Ciphertext Teracak:</span>
-          <span id="flow-c" class="px-2.5 py-1 rounded-lg bg-brand-sky/30 text-brand-deep font-mono font-bold">C = 2081</span>
-          <span class="text-[10px] text-brand-deep/70 italic">(Berubah tiap kunci diubah)</span>
-        </div>
-        <div class="flex items-center text-slate-400 font-semibold gap-1">
-          <span>Dekripsi (RSA/CRT)</span>
-          <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-slate-400 font-bold">3. Hasil Dekripsi:</span>
-          <span id="flow-dec" class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 font-mono font-bold">M = 1819</span>
-          <span class="text-[10px] text-emerald-700 italic font-semibold">(Pulih 100%)</span>
+        <div class="pt-2 border-t border-slate-100 text-center text-[11px] text-slate-500 italic">
+          Enkripsi sama untuk kedua metode; yang dibandingkan hanya dekripsi
         </div>
       </div>
 
@@ -298,10 +302,10 @@
           <div class="space-y-3">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
-                <h4 class="font-bold text-brand-deep text-sm">Metode RSA Standar</h4>
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0"></span>
+                <h4 class="font-bold text-brand-deep text-sm whitespace-nowrap">Metode RSA Standar</h4>
               </div>
-              <span class="text-[11px] font-mono font-semibold bg-slate-100 text-slate-700 px-2 py-0.5 rounded">Single Modulus</span>
+              <span class="text-[11px] font-mono font-semibold bg-slate-100 text-slate-700 px-2 py-0.5 rounded whitespace-nowrap">Single Modulus</span>
             </div>
             <!-- Mathematical breakdown list -->
             <div class="space-y-2.5 text-xs bg-brand-soft/50 p-3.5 rounded-xl border border-slate-100">
@@ -310,18 +314,14 @@
                 <span id="out-n" class="font-mono font-bold text-brand-deep text-sm">2537</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-slate-600 font-medium">Totient φ(n) = (p-1)(q-1):</span>
+                <span class="text-slate-600 font-medium">Totient φ(n) = (p − 1)(q − 1):</span>
                 <span id="out-phi" class="font-mono font-bold text-brand-deep text-sm">2436</span>
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-slate-600 font-medium">Eksponen Privat d:</span>
                 <span id="out-d" class="font-mono font-bold text-brand-deep text-sm">937</span>
               </div>
-              <div class="flex justify-between items-center bg-brand-sky/20 px-2.5 py-1.5 rounded-lg border border-brand-sky/40">
-                <span class="text-brand-deep font-semibold">Ciphertext C = M<sup>e</sup> mod n:</span>
-                <span id="out-c" class="font-mono font-bold text-brand-deep text-sm">2081</span>
-              </div>
-              <div class="flex justify-between items-center pt-1.5 border-t border-slate-200">
+              <div class="flex justify-between items-center pt-2 border-t border-slate-200">
                 <span id="label-dekripsi-rsa" class="text-slate-700 font-medium">Dekripsi: M = C<sup>d</sup> mod n</span>
                 <span id="out-m-rsa" class="font-mono text-emerald-700 font-bold text-sm">1819</span>
               </div>
@@ -336,41 +336,45 @@
         <!-- RSA-CRT Card -->
         <article class="bg-white rounded-2xl p-5 border-2 border-brand-sky/60 shadow-subtle flex flex-col justify-between space-y-4 relative overflow-hidden">
           <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-brand-deep"></span>
-                <h4 class="font-bold text-brand-deep text-sm">Metode RSA-CRT (Dioptimalkan)</h4>
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center space-x-2 shrink-0">
+                <span class="w-2.5 h-2.5 rounded-full bg-brand-deep shrink-0"></span>
+                <h4 class="font-bold text-brand-deep text-sm whitespace-nowrap">Metode RSA-CRT</h4>
               </div>
-              <span class="text-[11px] font-mono font-bold bg-brand-sun text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300">3x - 4x Lebih Cepat</span>
+              <span id="crt-speedup-badge" class="text-[11px] font-mono font-bold bg-brand-sun text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300 whitespace-nowrap shrink-0">Teoretis sekitar 4x (bukan hasil ukur)</span>
             </div>
             <!-- Mathematical breakdown list -->
             <div class="space-y-2.5 text-xs bg-brand-soft/50 p-3.5 rounded-xl border border-slate-100">
               <div class="flex justify-between items-center">
-                <span class="text-slate-600 font-medium">d<sub>P</sub> = d mod (p-1):</span>
+                <span class="text-slate-600 font-medium">d<sub>P</sub> = d mod (p − 1):</span>
                 <span id="out-dp" class="font-mono font-bold text-brand-deep text-sm">13</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-slate-600 font-medium">d<sub>Q</sub> = d mod (q-1):</span>
+                <span class="text-slate-600 font-medium">d<sub>Q</sub> = d mod (q − 1):</span>
                 <span id="out-dq" class="font-mono font-bold text-brand-deep text-sm">9</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-slate-600 font-medium">q<sub>inv</sub> = q<sup>-1</sup> mod p:</span>
-                <span id="out-qinv" class="font-mono font-bold text-brand-deep text-sm">30</span>
+                <span class="text-slate-600 font-medium">q<sub>inv</sub> = q<sup>−1</sup> mod p:</span>
+                <span id="out-qinv" class="font-mono font-bold text-brand-deep text-sm">35</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-slate-600 font-medium">m<sub>1</sub> = C<sup>d<sub>P</sub></sup> mod p, m<sub>2</sub> = C<sup>d<sub>Q</sub></sup> mod q:</span>
-                <span id="out-m1m2" class="font-mono font-bold text-brand-ocean text-xs">m₁=13, m₂=49</span>
+                <span class="text-slate-600 font-medium">m₁ = C<sup>d<sub>P</sub></sup> mod p, &nbsp;m₂ = C<sup>d<sub>Q</sub></sup> mod q:</span>
+                <span id="out-m1m2" class="font-mono font-bold text-brand-ocean text-xs whitespace-nowrap">m₁ = 13, m₂ = 49</span>
               </div>
               <div class="flex justify-between items-center pt-1.5 border-t border-slate-200">
-                <span class="text-slate-700 font-medium">Rekonstruksi Garner (M = m₂ + h·q):</span>
-                <span id="out-m-crt" class="font-mono text-emerald-700 font-bold text-sm">M = 1819</span>
+                <span class="text-slate-600 font-medium">h = q<sub>inv</sub> × (m₁ − m₂) mod p:</span>
+                <span id="out-h" class="font-mono font-bold text-brand-deep text-sm whitespace-nowrap">30</span>
+              </div>
+              <div class="flex justify-between items-center pt-1.5 border-t border-slate-200">
+                <span class="text-slate-700 font-medium whitespace-nowrap">M = m₂ + h × q:</span>
+                <span id="out-m-crt" class="font-mono text-emerald-700 font-bold text-sm whitespace-nowrap">49 + 30 × 59 = 1819</span>
               </div>
             </div>
           </div>
-          <div class="pt-2 text-[11px] text-brand-deep font-semibold flex items-center justify-between">
-            <span>Kompleksitas: 2 × O((k/2)³) ≈ 0.25 × Standar</span>
-            <span class="text-emerald-600 flex items-center gap-1 font-bold">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+          <div class="pt-2 text-[10px] sm:text-[11px] text-brand-deep font-semibold flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <span class="whitespace-nowrap">Kompleksitas (Teoretis): 2 × O((k/2)³) = 0,25 × Standar</span>
+            <span class="text-emerald-600 flex items-center gap-1 font-bold whitespace-nowrap">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path>
               </svg>
               Presisi Terverifikasi
@@ -674,7 +678,7 @@
             </svg>
             Keunggulan Chinese Remainder Theorem (CRT)
           </span>
-          <span class="text-[10px] font-mono font-bold bg-white/80 text-amber-900 px-2 py-0.5 rounded border border-amber-300">~3x - 4x Lebih Cepat</span>
+          <span class="text-[10px] font-mono font-bold bg-white/80 text-amber-900 px-2 py-0.5 rounded border border-amber-300">Teoretis ~4x Lebih Cepat</span>
         </div>
         <ul class="text-xs text-amber-950 space-y-2.5 leading-relaxed">
           <li class="flex items-start">
@@ -771,15 +775,34 @@
     }
   }
 
+  function gcd(a, b) {
+    let x = Math.abs(a);
+    let y = Math.abs(b);
+    while (y !== 0) {
+      const t = y;
+      y = x % y;
+      x = t;
+    }
+    return x;
+  }
+
   // Live input badge verification
   function checkInputsLive() {
     const p = parseInt(document.getElementById('param-p').value, 10);
     const q = parseInt(document.getElementById('param-q').value, 10);
+    const e = parseInt(document.getElementById('param-e').value, 10);
+    const m = parseInt(document.getElementById('param-m').value, 10);
+
     const badgeP = document.getElementById('badge-p');
     const badgeQ = document.getElementById('badge-q');
+    const badgeE = document.getElementById('badge-e');
+    const badgeM = document.getElementById('badge-m');
+
+    const pPrime = isPrime(p);
+    const qPrime = isPrime(q);
 
     if (badgeP) {
-      if (isPrime(p)) {
+      if (pPrime) {
         badgeP.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold";
         badgeP.innerText = "Prima";
       } else {
@@ -789,12 +812,46 @@
     }
 
     if (badgeQ) {
-      if (isPrime(q)) {
+      if (qPrime) {
         badgeQ.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold";
         badgeQ.innerText = "Prima";
       } else {
         badgeQ.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-semibold";
         badgeQ.innerText = "Bukan Prima";
+      }
+    }
+
+    if (pPrime && qPrime && p !== q) {
+      const n = p * q;
+      const phi = (p - 1) * (q - 1);
+
+      if (badgeE) {
+        if (!isNaN(e) && e > 1 && e < phi && gcd(e, phi) === 1) {
+          badgeE.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold";
+          badgeE.innerText = "gcd(e,φ)=1";
+        } else {
+          badgeE.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-semibold";
+          badgeE.innerText = (!isNaN(e) && gcd(e, phi) !== 1) ? "gcd(e,φ) ≠ 1" : "e Tidak Valid";
+        }
+      }
+
+      if (badgeM) {
+        if (!isNaN(m) && m >= 0 && m < n) {
+          badgeM.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-semibold whitespace-nowrap";
+          badgeM.innerText = "0 ≤ M < n";
+        } else {
+          badgeM.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-semibold whitespace-nowrap";
+          badgeM.innerText = "M ≥ n (Galat)";
+        }
+      }
+    } else {
+      if (badgeE) {
+        badgeE.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold whitespace-nowrap";
+        badgeE.innerText = "Perlu p, q prima";
+      }
+      if (badgeM) {
+        badgeM.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold whitespace-nowrap";
+        badgeM.innerText = "0 ≤ M < n";
       }
     }
   }
@@ -915,15 +972,18 @@
       document.getElementById('out-n').innerText = data.n;
       document.getElementById('out-phi').innerText = data.phi;
       document.getElementById('out-d').innerText = data.d;
-      document.getElementById('out-c').innerText = data.c;
-      document.getElementById('label-dekripsi-rsa').innerHTML = `Dekripsi: M = C<sup>${data.d}</sup> mod ${data.n}`;
+      const outC = document.getElementById('out-c');
+      if (outC) outC.innerText = data.c;
+      const labelDekripsi = document.getElementById('label-dekripsi-rsa');
+      if (labelDekripsi) labelDekripsi.innerHTML = 'Dekripsi: M = C<sup>d</sup> mod n';
       document.getElementById('out-m-rsa').innerText = `${data.m_rsa}`;
 
       document.getElementById('out-dp').innerText = data.dP;
       document.getElementById('out-dq').innerText = data.dQ;
       document.getElementById('out-qinv').innerText = data.qInv;
-      document.getElementById('out-m1m2').innerText = `m₁=${data.m1}, m₂=${data.m2}`;
-      document.getElementById('out-m-crt').innerText = `M = ${data.m_crt}`;
+      document.getElementById('out-m1m2').innerText = `m₁ = ${data.m1}, m₂ = ${data.m2}`;
+      document.getElementById('out-h').innerText = `${data.h}`;
+      document.getElementById('out-m-crt').innerText = `${data.m2} + ${data.h} × ${data.q} = ${data.m_crt}`;
 
     } catch (err) {
       errMsg.innerText = err.message;
@@ -994,7 +1054,32 @@
     }
   }
 
+  let latestMeasuredSpeedup = null;
+
+  function setMeasuredSpeedup(speedup) {
+    latestMeasuredSpeedup = speedup;
+    const badge = document.getElementById('crt-speedup-badge');
+    if (badge) {
+      if (latestMeasuredSpeedup !== null && !isNaN(latestMeasuredSpeedup)) {
+        const formatted = latestMeasuredSpeedup.toFixed(1).replace('.', ',');
+        badge.innerText = `Terukur: ${formatted}x lebih cepat`;
+        badge.className = "text-[11px] font-mono font-bold bg-emerald-100 text-emerald-900 px-2.5 py-0.5 rounded-full border border-emerald-300";
+      } else {
+        badge.innerText = "Teoretis sekitar 4x (bukan hasil ukur)";
+        badge.className = "text-[11px] font-mono font-bold bg-brand-sun text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300";
+      }
+    }
+  }
+
   function renderBenchmarkResults(results) {
+    // Perbarui badge percepatan di Tab 1 dengan hasil ukur nyata
+    if (results && results.length > 0) {
+      const totalRsa = results.reduce((acc, r) => acc + r.rsa_median_ms, 0);
+      const totalCrt = results.reduce((acc, r) => acc + r.crt_median_ms, 0);
+      const measuredRatio = totalCrt > 0 ? (totalRsa / totalCrt) : results[0].speedup;
+      setMeasuredSpeedup(measuredRatio);
+    }
+
     // 1. Metric Cards
     const cardsContainer = document.getElementById('bench-metrics-cards');
     cardsContainer.innerHTML = '';
