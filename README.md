@@ -46,6 +46,7 @@ Browser Anda akan otomatis terbuka di `http://localhost:8000`. Fitur web meliput
 1. **Simulasi & Langkah Matematis**: Perhitungan step-by-step $n, \phi(n), d, d_P, d_Q, q_{inv}$, enkripsi $C$, dan komparasi dekripsi standar vs CRT.
 2. **Benchmark & Visualisasi Grafik**: Uji kecepatan multi-bit ($256, 512, 1024$ bit) dengan bar chart waktu eksekusi, line chart rasio *speedup*, dan tombol unduh CSV langsung.
 3. **Verifikasi Kasus Uji**: Menjalankan 16 kasus uji otomatis dengan badge status visual.
+4. **Enkripsi Pesan Teks (String)**: Enkripsi kalimat teks bebas (UTF-8) menjadi Ciphertext (HEX & Base64), pemotongan blok modular otomatis ($M < n$), serta bukti dekripsi kembali ke teks asli dengan perbandingan kecepatan RSA Standar vs RSA-CRT.
 
 ---
 
