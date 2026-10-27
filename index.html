@@ -211,9 +211,9 @@
             <span id="badge-m" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-semibold whitespace-nowrap">0 ≤ M &lt; n</span>
           </div>
           <div class="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-ocean">
-            <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepVal('param-m', -10); runSimulasi();" type="button">−</button>
+            <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepVal('param-m', -10); debouncedRunSimulasi(200);" type="button">−</button>
             <input class="w-full border-0 text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-0" id="param-m" type="number" value="1819" oninput="checkInputsLive()">
-            <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepVal('param-m', 10); runSimulasi();" type="button">+</button>
+            <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepVal('param-m', 10); debouncedRunSimulasi(200);" type="button">+</button>
           </div>
         </div>
       </div>
@@ -933,28 +933,75 @@
 <!-- JAVASCRIPT LOGIC & API INTEGRATION                         -->
 <!-- ========================================================== -->
 <script>
-  // Helper for Stepper inputs
-  // Primality test helper
+  // Debounce helper to prevent rapid request lag
+  let simulasiDebounceTimer = null;
+  function debouncedRunSimulasi(delay = 250) {
+    clearTimeout(simulasiDebounceTimer);
+    simulasiDebounceTimer = setTimeout(() => {
+      runSimulasi();
+    }, delay);
+  }
+
+  // Fast BigInt modular power for large primality checking
+  function powerMod(base, exp, mod) {
+    let res = 1n;
+    let b = BigInt(base) % BigInt(mod);
+    let e = BigInt(exp);
+    const m = BigInt(mod);
+    while (e > 0n) {
+      if (e % 2n === 1n) res = (res * b) % m;
+      b = (b * b) % m;
+      e /= 2n;
+    }
+    return res;
+  }
+
+  // Rock-solid primality tester: NEVER freezes on NaN or large numbers
   function isPrime(num) {
-    if (num <= 1) return false;
+    if (!Number.isFinite(num) || isNaN(num) || num <= 1) return false;
     if (num <= 3) return true;
     if (num % 2 === 0 || num % 3 === 0) return false;
-    for (let i = 5; i * i <= num; i += 6) {
-      if (num % i === 0 || num % (i + 2) === 0) return false;
+    if (num < 100000) {
+      for (let i = 5; i * i <= num; i += 6) {
+        if (num % i === 0 || num % (i + 2) === 0) return false;
+      }
+      return true;
     }
-    return true;
+    try {
+      const nBig = BigInt(num);
+      const bases = [2n, 3n, 5n, 7n, 11n, 13n];
+      for (const a of bases) {
+        if (nBig % a === 0n) return nBig === a;
+        if (powerMod(a, nBig - 1n, nBig) !== 1n) return false;
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   function nextPrime(num) {
-    let candidate = Math.max(2, num + 1);
-    while (!isPrime(candidate)) candidate++;
+    if (!Number.isFinite(num) || isNaN(num) || num < 2) return 2;
+    let candidate = Math.max(2, Math.trunc(num) + 1);
+    if (candidate > 2 && candidate % 2 === 0) candidate++;
+    let steps = 0;
+    while (!isPrime(candidate) && steps < 5000) {
+      candidate += 2;
+      steps++;
+    }
     return candidate;
   }
 
   function prevPrime(num) {
-    let candidate = num - 1;
-    while (candidate > 2 && !isPrime(candidate)) candidate--;
-    return candidate >= 3 ? candidate : 3;
+    if (!Number.isFinite(num) || isNaN(num) || num <= 3) return 2;
+    let candidate = Math.trunc(num) - 1;
+    if (candidate > 2 && candidate % 2 === 0) candidate--;
+    let steps = 0;
+    while (candidate > 2 && !isPrime(candidate) && steps < 5000) {
+      candidate -= 2;
+      steps++;
+    }
+    return candidate >= 2 ? candidate : 2;
   }
 
   // Stepper specifically for Primes (p and q)
@@ -965,7 +1012,7 @@
       const nextVal = delta > 0 ? nextPrime(currentVal) : prevPrime(currentVal);
       input.value = nextVal;
       checkInputsLive();
-      runSimulasi();
+      debouncedRunSimulasi(200);
     }
   }
 
@@ -979,7 +1026,7 @@
       if (currentVal % 2 === 0) currentVal += 1;
       input.value = currentVal;
       checkInputsLive();
-      runSimulasi();
+      debouncedRunSimulasi(200);
     }
   }
 
@@ -994,10 +1041,12 @@
     }
   }
 
+  // Safe Euclidean GCD: Guarded against NaN and non-finite numbers to prevent infinite loops
   function gcd(a, b) {
-    let x = Math.abs(a);
-    let y = Math.abs(b);
-    while (y !== 0) {
+    if (!Number.isFinite(a) || !Number.isFinite(b) || isNaN(a) || isNaN(b)) return 0;
+    let x = Math.trunc(Math.abs(a));
+    let y = Math.trunc(Math.abs(b));
+    while (y !== 0 && !isNaN(y)) {
       const t = y;
       y = x % y;
       x = t;
@@ -1005,41 +1054,65 @@
     return x;
   }
 
-  // Live input badge verification
+  // Live input badge verification (completely safe against partial keystrokes & NaN)
   function checkInputsLive() {
     updateTextKeySummaryUI();
-    const p = parseInt(document.getElementById('param-p').value, 10);
-    const q = parseInt(document.getElementById('param-q').value, 10);
-    const e = parseInt(document.getElementById('param-e').value, 10);
-    const m = parseInt(document.getElementById('param-m').value, 10);
+
+    const pStr = document.getElementById('param-p')?.value.trim();
+    const qStr = document.getElementById('param-q')?.value.trim();
+    const eStr = document.getElementById('param-e')?.value.trim();
+    const mStr = document.getElementById('param-m')?.value.trim();
 
     const badgeP = document.getElementById('badge-p');
     const badgeQ = document.getElementById('badge-q');
     const badgeE = document.getElementById('badge-e');
     const badgeM = document.getElementById('badge-m');
 
+    if (!pStr || isNaN(parseInt(pStr, 10))) {
+      if (badgeP) {
+        badgeP.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold";
+        badgeP.innerText = "Isi angka";
+      }
+    } else {
+      const p = parseInt(pStr, 10);
+      const pPrime = isPrime(p);
+      if (badgeP) {
+        if (pPrime) {
+          badgeP.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold";
+          badgeP.innerText = "Prima";
+        } else {
+          badgeP.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-semibold";
+          badgeP.innerText = "Bukan Prima";
+        }
+      }
+    }
+
+    if (!qStr || isNaN(parseInt(qStr, 10))) {
+      if (badgeQ) {
+        badgeQ.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold";
+        badgeQ.innerText = "Isi angka";
+      }
+    } else {
+      const q = parseInt(qStr, 10);
+      const qPrime = isPrime(q);
+      if (badgeQ) {
+        if (qPrime) {
+          badgeQ.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold";
+          badgeQ.innerText = "Prima";
+        } else {
+          badgeQ.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-semibold";
+          badgeQ.innerText = "Bukan Prima";
+        }
+      }
+    }
+
+    const p = parseInt(pStr, 10);
+    const q = parseInt(qStr, 10);
+    const e = parseInt(eStr, 10);
+    const m = parseInt(mStr, 10);
+
     const pPrime = isPrime(p);
     const qPrime = isPrime(q);
-
-    if (badgeP) {
-      if (pPrime) {
-        badgeP.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold";
-        badgeP.innerText = "Prima";
-      } else {
-        badgeP.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-semibold";
-        badgeP.innerText = "Bukan Prima";
-      }
-    }
-
-    if (badgeQ) {
-      if (qPrime) {
-        badgeQ.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold";
-        badgeQ.innerText = "Prima";
-      } else {
-        badgeQ.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-semibold";
-        badgeQ.innerText = "Bukan Prima";
-      }
-    }
 
     if (pPrime && qPrime && p !== q) {
       const n = p * q;
@@ -1061,7 +1134,7 @@
           badgeM.innerText = "0 ≤ M < n";
         } else {
           badgeM.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-semibold whitespace-nowrap";
-          badgeM.innerText = "M ≥ n (Galat)";
+          badgeM.innerText = isNaN(m) ? "Isi M" : "M ≥ n (Galat)";
         }
       }
     } else {
