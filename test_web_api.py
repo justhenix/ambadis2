@@ -80,18 +80,44 @@ class WebApiTests(unittest.TestCase):
         self.assertEqual(data['cases'][-1]['status'], 'FAIL')
         self.assertEqual(data['summary']['fail'], 1)
 
-    def test_fermat_retained_and_failed_decryption_rejected(self):
+    def test_composite_passing_single_base_and_failed_decryption_rejected(self):
+        # Basis tetap a=2 sengaja dipakai agar komposit lolos satu basis;
+        # verifikasi dekripsi tetap harus menolak p yang bukan prima.
         with patch.object(rsa.secrets, 'randbelow', return_value=0):
-            self.assertTrue(rsa.prima_fermat(252601, 20))
+            self.assertTrue(rsa.prima_miller_rabin(252601, 20))
             code, data = self.post('/api/simulasi', dict(p=1373653,q=59,e=13,message=5))
         self.assertEqual(code, 400)
         self.assertIn('Verifikasi dekripsi gagal', data['message'])
+
+    def test_miller_rabin_rejects_carmichael_numbers_fermat_accepts(self):
+        # Faktor prima semuanya > 37, jadi tidak tertangkap penyaringan awal.
+        for n in (252601, 56052361, 118901521, 172947529):
+            with self.subTest(n=n):
+                self.assertEqual(pow(2, n - 1, n), 1)  # uji Fermat basis 2 lolos
+                self.assertFalse(rsa.prima_miller_rabin(n, 20))
+                code, data = self.post('/api/simulasi', dict(p=n, q=59, e=13, message=5))
+                self.assertEqual(code, 400)
+                self.assertIn('tidak lolos uji prima Miller-Rabin', data['message'])
+
+    def test_miller_rabin_matches_trial_division_on_small_range(self):
+        def prima_biasa(n):
+            return n >= 2 and all(n % i for i in range(2, int(n ** 0.5) + 1))
+        for n in range(0, 3000):
+            self.assertEqual(rsa.prima_miller_rabin(n, 20), prima_biasa(n), n)
+
+    def test_miller_rabin_large_primes_and_products(self):
+        m89, m127 = 2 ** 89 - 1, 2 ** 127 - 1
+        self.assertTrue(rsa.prima_miller_rabin(m89, 20))
+        self.assertTrue(rsa.prima_miller_rabin(m127, 20))
+        self.assertFalse(rsa.prima_miller_rabin(m89 * m127, 20))
+        with self.assertRaises(ValueError):
+            rsa.prima_miller_rabin(m89, 0)
 
     def test_benchmark_samples_reproduce_summary_and_csv(self):
         with tempfile.TemporaryDirectory() as directory:
             with patch.object(rsa, '__file__', str(Path(directory)/'rsa_benchmark.py')):
                 code, data = self.post('/api/benchmark', dict(prime_bits=[16], trials=5,
-                    warmup=1, fermat_rounds=20, message='1819'))
+                    warmup=1, mr_rounds=20, message='1819'))
             self.assertEqual(code, 200)
             row = data['results'][0]
             self.assertIsInstance(row['p'], str)

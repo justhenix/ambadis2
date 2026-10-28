@@ -214,18 +214,18 @@
         </div>
       </div>
 
-      <!-- Slider for Fermat Test Rounds -->
+      <!-- Slider for Miller-Rabin Test Rounds -->
       <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-3">
         <div class="flex items-center justify-between">
           <div class="space-y-0.5">
-            <span class="text-xs font-bold text-brand-deep">Jumlah Pengujian Fermat untuk Validasi Prima:</span>
-            <p class="text-[11px] text-slate-400">Pemeriksaan kandidat prima dengan uji Fermat sebelum pembentukan kunci.</p>
+            <span class="text-xs font-bold text-brand-deep">Jumlah Pengujian Miller-Rabin untuk Validasi Prima:</span>
+            <p class="text-[11px] text-slate-400">Pemeriksaan kandidat prima dengan uji Miller-Rabin sebelum pembentukan kunci.</p>
           </div>
-          <span class="px-2.5 py-0.5 rounded-md font-mono text-xs font-bold bg-brand-deep text-white shadow-sm" id="fermat-value-badge">20 Putaran</span>
+          <span class="px-2.5 py-0.5 rounded-md font-mono text-xs font-bold bg-brand-deep text-white shadow-sm" id="mr-value-badge">20 Putaran</span>
         </div>
-        <input class="w-full cursor-pointer" id="fermat-slider" max="30" min="1" oninput="updateFermatSlider(this.value)" type="range" value="20">
+        <input class="w-full cursor-pointer" id="mr-slider" max="30" min="1" oninput="updateMRSlider(this.value)" type="range" value="20">
         
-        <p class="text-[11px] text-slate-500">Lolos Fermat belum membuktikan keprimaan; bilangan Carmichael dapat lolos.</p>
+        <p class="text-[11px] text-slate-500">Lolos Miller-Rabin berarti kemungkinan prima; untuk basis acak independen, peluang komposit lolos satu ronde paling banyak 1/4.</p>
       </div>
 
       <!-- Error Message Container (Hidden by default) -->
@@ -448,13 +448,13 @@
           <input class="w-full cursor-pointer" id="warmup-slider" max="10" min="1" step="1" oninput="document.getElementById('warmup-val').innerText = this.value" type="range" value="3">
         </div>
 
-        <!-- Fermat Rounds Slider -->
+        <!-- Miller-Rabin Rounds Slider -->
         <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-brand-deep">Basis Uji Fermat:</span>
-            <span class="px-2 py-0.5 rounded font-mono text-xs font-bold bg-brand-deep text-white" id="bench-fermat-val">20</span>
+            <span class="text-xs font-bold text-brand-deep">Basis Uji Miller-Rabin:</span>
+            <span class="px-2 py-0.5 rounded font-mono text-xs font-bold bg-brand-deep text-white" id="bench-mr-val">20</span>
           </div>
-          <input class="w-full cursor-pointer" id="bench-fermat-slider" max="30" min="5" step="5" oninput="document.getElementById('bench-fermat-val').innerText = this.value" type="range" value="20">
+          <input class="w-full cursor-pointer" id="bench-mr-slider" max="30" min="5" step="5" oninput="document.getElementById('bench-mr-val').innerText = this.value" type="range" value="20">
         </div>
 
         <!-- Message Input -->
@@ -523,7 +523,7 @@
         <div class="bg-white rounded-2xl p-5 border border-brand-border shadow-subtle space-y-3">
           <div class="flex items-center justify-between border-b border-slate-100 pb-2">
             <h4 class="font-bold text-brand-deep text-xs uppercase tracking-wider">Rasio Percepatan (Speedup Multiplier)</h4>
-            <span class="text-[11px] text-amber-800 font-semibold bg-brand-sun px-2 py-0.5 rounded">CRT ~3x-4x Lebih Cepat</span>
+            <span class="text-[11px] text-amber-800 font-semibold bg-brand-sun px-2 py-0.5 rounded">Rasio &gt; 1: CRT lebih cepat</span>
           </div>
           <div class="relative h-64">
             <canvas id="speedupCurveChart"></canvas>
@@ -738,8 +738,24 @@
       }
       return true;
     }
-    for (const a of [2n, 3n, 5n, 7n, 11n, 13n]) {
-      if (num % a === 0n || powerMod(a, num - 1n, num) !== 1n) return false;
+    // Miller-Rabin: num - 1 = 2^s * d dengan d ganjil.
+    let d = num - 1n;
+    let s = 0;
+    while (d % 2n === 0n) {
+      d /= 2n;
+      s++;
+    }
+    // 12 basis prima pertama: deterministik untuk num < 3,18 x 10^23.
+    for (const a of [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n]) {
+      if (num % a === 0n) return false;
+      let x = powerMod(a, d, num);
+      if (x === 1n || x === num - 1n) continue;
+      let ketemu = false;
+      for (let r = 1; r < s; r++) {
+        x = x * x % num;
+        if (x === num - 1n) { ketemu = true; break; }
+      }
+      if (!ketemu) return false;
     }
     return true;
   }
@@ -804,7 +820,7 @@
     for (const [name, value] of [['p', p], ['q', q]]) {
       const badge = document.getElementById(`badge-${name}`);
       const candidate = isPrimeCandidate(value);
-      badge.innerText = value === null ? 'Isi angka' : candidate ? (value < 100000n ? 'Prima' : 'Lolos Fermat') : 'Bukan Prima';
+      badge.innerText = value === null ? 'Isi angka' : candidate ? (value < 100000n ? 'Prima' : 'Lolos Miller-Rabin') : 'Bukan Prima';
       badge.className = `text-[10px] font-mono px-1.5 py-0.5 rounded font-semibold ${candidate ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'}`;
     }
     const badgeE = document.getElementById('badge-e');
@@ -845,9 +861,9 @@
     });
   }
 
-  // Update Fermat Slider visual metrics
-  function updateFermatSlider(val) {
-    document.getElementById('fermat-value-badge').innerText = `${val} Putaran`;
+  // Update Miller-Rabin Slider visual metrics
+  function updateMRSlider(val) {
+    document.getElementById('mr-value-badge').innerText = `${val} Putaran`;
   }
 
   // Tab Switcher
@@ -891,7 +907,7 @@
     const q = document.getElementById('param-q').value.trim();
     const e = document.getElementById('param-e').value.trim();
     const m = document.getElementById('param-m').value.trim();
-    const fermat_rounds = parseInt(document.getElementById('fermat-slider').value, 10);
+    const mr_rounds = parseInt(document.getElementById('mr-slider').value, 10);
 
     const errBox = document.getElementById('simulasi-error');
     const errMsg = document.getElementById('simulasi-error-msg');
@@ -906,7 +922,7 @@
       const resp = await fetch('/api/simulasi', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ p, q, e, message: m, fermat_rounds })
+        body: JSON.stringify({ p, q, e, message: m, mr_rounds })
       });
       const data = await resp.json();
 
@@ -964,7 +980,7 @@
 
     const trials = parseInt(document.getElementById('trials-slider').value, 10);
     const warmup = parseInt(document.getElementById('warmup-slider').value, 10);
-    const fermat_rounds = parseInt(document.getElementById('bench-fermat-slider').value, 10);
+    const mr_rounds = parseInt(document.getElementById('bench-mr-slider').value, 10);
     const message = document.getElementById('bench-message').value.trim();
 
     const btn = document.getElementById('btn-run-benchmark');
@@ -983,7 +999,7 @@
       const resp = await fetch('/api/benchmark', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prime_bits, trials, warmup, fermat_rounds, message })
+        body: JSON.stringify({ prime_bits, trials, warmup, mr_rounds, message })
       });
       const data = await resp.json();
 
@@ -1005,31 +1021,7 @@
     }
   }
 
-  let latestMeasuredSpeedup = null;
-
-  function setMeasuredSpeedup(speedup) {
-    latestMeasuredSpeedup = speedup;
-    const badge = document.getElementById('crt-speedup-badge');
-    if (badge) {
-      if (latestMeasuredSpeedup !== null && !isNaN(latestMeasuredSpeedup)) {
-        badge.innerText = `Terukur: ${speedupLabel(latestMeasuredSpeedup)}`;
-        badge.className = "text-[11px] font-mono font-bold bg-emerald-100 text-emerald-900 px-2.5 py-0.5 rounded-full border border-emerald-300";
-      } else {
-        badge.innerText = "Teoretis sekitar 4x (bukan hasil ukur)";
-        badge.className = "text-[11px] font-mono font-bold bg-brand-sun text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300";
-      }
-    }
-  }
-
   function renderBenchmarkResults(results) {
-    // Perbarui badge percepatan di Tab 1 dengan hasil ukur nyata
-    if (results && results.length > 0) {
-      const totalRsa = results.reduce((acc, r) => acc + r.rsa_median_ms, 0);
-      const totalCrt = results.reduce((acc, r) => acc + r.crt_median_ms, 0);
-      const measuredRatio = totalCrt > 0 ? (totalRsa / totalCrt) : results[0].speedup;
-      setMeasuredSpeedup(measuredRatio);
-    }
-
     // 1. Metric Cards
     const cardsContainer = document.getElementById('bench-metrics-cards');
     cardsContainer.innerHTML = '';

@@ -6,7 +6,7 @@ Program mulai dari `main()`. Di sini kamu memilih p dan q sendiri atau meminta p
 |---|---|
 | Mulai dan baca p, q, e, M, R | `main()` membaca --p, --q, --e, --message/--M, dan --trials. |
 | Bangkitkan prima otomatis | `bangkitkan_prima()` membuat kandidat; `kunci_acak()` memilih pasangan sesuai --prime-bits. |
-| Periksa prima dan GCD | `prima_fermat()` menguji kandidat; `euclid()` mencari GCD dan koefisien Bezout. |
+| Periksa prima dan GCD | `prima_miller_rabin()` menguji kandidat; `euclid()` mencari GCD dan koefisien Bezout. |
 | Cari invers modular | `invers_modulo()` memakai koefisien Bezout jika GCD-nya 1. |
 | Hitung perpangkatan biner | `pangkat_modular()` membaca bit eksponen sambil menguadratkan basis dan mengambil modulo. |
 | Bentuk kunci | `bangkitkan_kunci()` menghitung n, phi, d, dP, dQ, dan qInv. |
@@ -21,4 +21,4 @@ Kedua metode memakai kunci, ciphertext, dan pesan yang sama. Yang masuk timer ha
 
 Pada percobaan pertama, RSA standar dijalankan lebih dulu; percobaan berikutnya dimulai dengan CRT. Urutan ini terus bergantian. Program melaporkan rerata serta median, lalu membagi median RSA dengan median CRT untuk mendapatkan rasio percepatan. Jadi, rasio 3 berarti median waktu RSA standar tiga kali median waktu CRT.
 
-Ada beberapa penyesuaian dari pseudocode: opsi terminal menggantikan read/lagi, jumlah basis Fermat bawaan menjadi 20 (pseudocode: 5), dan program menambahkan pemanasan, median, serta CSV. Koreksi sisa negatif tidak diperlukan karena modulo dengan pembagi positif di Python sudah menghasilkan sisa tidak negatif. Pada mode manual, program mencetak C setelah pengukuran.
+Ada beberapa penyesuaian dari pseudocode: opsi terminal menggantikan read/lagi, jumlah basis Miller-Rabin bawaan menjadi 20 (pseudocode: 5), dan program menambahkan pemanasan, median, serta CSV. Koreksi sisa negatif tidak diperlukan karena modulo dengan pembagi positif di Python sudah menghasilkan sisa tidak negatif. Pada mode manual, program mencetak C setelah pengukuran.

@@ -1,6 +1,6 @@
 # Kasus yang diperiksa skrip tes
 
-Jalankan `python .\test_rsa_benchmark.py` untuk mengecek seluruh kasus di bawah. V1 memakai contoh laporan, sedangkan kasus lainnya dibuat untuk menguji program. Agar cepat, tiap kasus memakai 10 percobaan, 1 pemanasan, dan 5 basis Fermat.
+Jalankan `python .\test_rsa_benchmark.py` untuk mengecek seluruh kasus di bawah. V1 memakai contoh laporan, sedangkan kasus lainnya dibuat untuk menguji program. Agar cepat, tiap kasus memakai 10 percobaan, 1 pemanasan, dan 5 basis Miller-Rabin.
 
 Kalau ingin mencoba satu kasus sendiri, jalankan `python .\rsa_benchmark.py --p P --q Q --e E --message M` lalu ganti P, Q, E, dan M dengan angka pada tabel. V2 memakai --M untuk mengecek aliasnya. Kasus V1 sampai V6 harus menghasilkan C yang sesuai, mengembalikan M pada kedua metode, dan selesai dengan status LULUS serta kode keluar 0.
 
@@ -17,8 +17,8 @@ Kasus I1 sampai I10 sengaja berisi input yang salah. Program harus menolaknya de
 
 | ID | p, q, e, M | Pesan kesalahan |
 |---|---|---|
-| I1 | 45, 59, 13, 1819 | p tidak lolos uji Fermat. |
-| I2 | 43, 55, 13, 1819 | q tidak lolos uji Fermat. |
+| I1 | 45, 59, 13, 1819 | p tidak lolos uji Miller-Rabin. |
+| I2 | 43, 55, 13, 1819 | q tidak lolos uji Miller-Rabin. |
 | I3 | 43, 43, 13, 42 | p dan q harus prima ganjil yang berbeda. |
 | I4 | 43, 59, 3, 1819 | Invers tidak ada: a dan modulus harus relatif prima. |
 | I5 | 43, 59, 2, 1819 | e harus ganjil dan lebih besar dari 1. |

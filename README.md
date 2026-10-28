@@ -21,10 +21,10 @@ py .\rsa_benchmark.py --p 43 --q 59 --e 13 --message 1819
 Kalau ingin mengukur waktu dengan prima yang lebih besar, biarkan program membangkitkan p dan q:
 
 ```powershell
-py .\rsa_benchmark.py --prime-bits 256 512 1024 --e 65537 --message 12345 --trials 100 --warmup 5 --fermat-rounds 20
+py .\rsa_benchmark.py --prime-bits 256 512 1024 --e 65537 --message 12345 --trials 100 --warmup 5 --mr-rounds 20
 ```
 
-`--M` bisa dipakai sebagai pengganti `--message`. Pilih salah satu cara memasukkan prima: isi `--p` dan `--q` sekaligus, atau pakai `--prime-bits`. Tanpa opsi apa pun, program memakai prima 256/512/1024 bit, e=65537, M=1819, 30 percobaan, 3 pemanasan, dan 20 basis Fermat.
+`--M` bisa dipakai sebagai pengganti `--message`. Pilih salah satu cara memasukkan prima: isi `--p` dan `--q` sekaligus, atau pakai `--prime-bits`. Tanpa opsi apa pun, program memakai prima 256/512/1024 bit, e=65537, M=1819, 30 percobaan, 3 pemanasan, dan 20 basis Miller-Rabin.
 
 Hasilnya masuk ke `benchmark_results.csv` di folder skrip. Setiap benchmark yang berhasil mengganti hasil sebelumnya.
 
@@ -53,8 +53,10 @@ Browser Anda akan otomatis terbuka di `http://localhost:8000`. Fitur web meliput
 
 ## Validasi dan data benchmark
 
-Uji Fermat tetap digunakan sesuai materi proyek. Kandidat yang lolos belum terbukti prima; bilangan Carmichael dapat lolos. Tidak ada persentase kepastian umum yang dihitung dari jumlah ronde Fermat. Setiap hasil dekripsi diperiksa terhadap pesan asli.
+Uji keprimaan memakai Miller-Rabin dengan basis acak independen. Hasil penolakan berarti bukan prima; kandidat yang lolos berstatus kemungkinan prima. Untuk kandidat komposit ganjil, peluang lolos k ronde paling banyak (1/4)^k. Setiap hasil dekripsi tetap diperiksa terhadap pesan asli.
 
 Nilai RSA dikirim sebagai string desimal melalui API agar bilangan besar tetap presisi di browser. Kolom rsa_samples_ns dan crt_samples_ns pada CSV menyimpan seluruh durasi percobaan dalam nanodetik; median dan rerata pada kolom ringkasan menggunakan milidetik. Panjang modulus aktual dapat bernilai 2b-1 atau 2b bit untuk kandidat p dan q masing-masing b bit.
 
 Jalankan `python test_web_api.py` untuk regresi API dan `node test_web_ui.js` untuk aritmetika dan transport integer pada antarmuka. Paket ZIP pada cabang ini mencakup dashboard dan peluncurnya.
+
+Bangun ulang paket setelah perubahan kode dengan `python build_team_zip.py`. Perintah ini memverifikasi bahwa seluruh sumber dalam ZIP sama dengan berkas proyek.

@@ -107,17 +107,17 @@ with tab_calc:
     with col_in4:
         m_val = st.text_input("Pesan M (0 <= M < n):", value=str(default_m))
 
-    fermat_check_rounds = st.slider("Jumlah Pengujian Fermat untuk Validasi Prima:", 1, 50, 20)
+    mr_check_rounds = st.slider("Jumlah Pengujian Miller-Rabin untuk Validasi Prima:", 1, 50, 20)
 
     if st.button("Hitung & Jalankan Simulasi", type="primary", use_container_width=True):
         try:
             p_val, q_val, e_val, m_val = map(int, (p_val, q_val, e_val, m_val))
-            # 1. Validasi Fermat
-            if not rsa.prima_fermat(p_val, fermat_check_rounds):
-                st.error(f"[GAGAL] Parameter p = {p_val} tidak lolos pengujian prima Fermat.")
+            # 1. Validasi Miller-Rabin
+            if not rsa.prima_miller_rabin(p_val, mr_check_rounds):
+                st.error(f"[GAGAL] Parameter p = {p_val} tidak lolos pengujian prima Miller-Rabin.")
                 st.stop()
-            if not rsa.prima_fermat(q_val, fermat_check_rounds):
-                st.error(f"[GAGAL] Parameter q = {q_val} tidak lolos pengujian prima Fermat.")
+            if not rsa.prima_miller_rabin(q_val, mr_check_rounds):
+                st.error(f"[GAGAL] Parameter q = {q_val} tidak lolos pengujian prima Miller-Rabin.")
                 st.stop()
 
             # 2. Bangkitkan Kunci
@@ -134,7 +134,7 @@ with tab_calc:
             m_crt = rsa.dekripsi_crt(c, p_val, q_val, kunci["dP"], kunci["dQ"], kunci["qInv"])
 
             if not m_val == m_rsa == m_crt:
-                raise ValueError("Verifikasi dekripsi gagal; periksa kandidat yang lolos Fermat.")
+                raise ValueError("Verifikasi dekripsi gagal; periksa kandidat yang lolos Miller-Rabin.")
             st.success("Perhitungan berhasil; kedua hasil dekripsi cocok dengan pesan asli.")
 
             col_res1, col_res2, col_res3 = st.columns(3)
@@ -217,7 +217,7 @@ with tab_bench:
         warmup_count = st.slider("Jumlah Pemanasan (Warmup):", min_value=1, max_value=10, value=3, step=1)
     with col_b3:
         bench_message = st.text_input("Pesan Uji M:", value="1819")
-        bench_fermat = st.slider("Basis Fermat Rounds:", min_value=5, max_value=30, value=20, step=5)
+        bench_mr = st.slider("Basis Miller-Rabin Rounds:", min_value=5, max_value=30, value=20, step=5)
 
     if st.button("Mulai Benchmark", type="primary", use_container_width=True):
         if not bit_options:
@@ -237,8 +237,8 @@ with tab_bench:
         for idx, bit in enumerate(bit_options):
             status_text.markdown(f"Sedang memproses panjang prima {bit} bit... (Membangkitkan prima & menguji dekripsi)")
             t_start = time.perf_counter()
-            kunci = rsa.kunci_acak(bit, bench_fermat, 65537)
-            res = rsa.benchmark(kunci, bench_message, trials_count, warmup_count, bench_fermat)
+            kunci = rsa.kunci_acak(bit, bench_mr, 65537)
+            res = rsa.benchmark(kunci, bench_message, trials_count, warmup_count, bench_mr)
             hasil_list.append(res)
             progress_bar.progress((idx + 1) / len(bit_options))
 
