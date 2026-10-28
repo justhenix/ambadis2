@@ -34,6 +34,9 @@ async function main() {
       return {json:async()=>data};
     }});
   vm.runInContext(script,context);
+  context.csvRows = [{p:'9007199254740993',rsa_samples_ns:[101,203],note:'comma, quote"\nline'}];
+  assert.equal(vm.runInContext('benchmarkCsv(csvRows)',context),
+    '"p","rsa_samples_ns","note"\r\n"9007199254740993","[101,203]","comma, quote""\nline"\r\n');
   element('param-p').value='1000000007';
   element('param-q').value='1000000009';
   element('param-e').value='65537';

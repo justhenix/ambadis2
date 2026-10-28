@@ -2,3 +2,8 @@ __pycache__/
 *.py[cod]
 benchmark_results.csv
 rsa_benchmark_untuk_tim/
+.vercel/
+public/
+.env*
+.vercel
+.env*

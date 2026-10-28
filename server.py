@@ -35,6 +35,8 @@ def read_rsa_integer(data, name, default):
 
 
 class RSAApiHandler(SimpleHTTPRequestHandler):
+    persist_benchmarks = True
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(BASE_DIR), **kwargs)
 
@@ -302,7 +304,7 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
                 hasil_list.append(res)
 
             # Simpan ke CSV
-            csv_path = rsa.simpan_csv(hasil_list)
+            csv_path = rsa.simpan_csv(hasil_list) if self.persist_benchmarks else None
             for result in hasil_list:
                 for name in ("p", "q", "e", "pesan", "ciphertext"):
                     result[name] = str(result[name])
@@ -310,7 +312,7 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
             self.send_json_response({
                 "status": "ok",
                 "results": hasil_list,
-                "csv_saved": str(csv_path.name)
+                "csv_saved": csv_path.name if csv_path else None
             })
 
         except Exception as err:

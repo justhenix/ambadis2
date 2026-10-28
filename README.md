@@ -50,7 +50,7 @@ Browser Anda akan otomatis terbuka di `http://localhost:8000`. Fitur web meliput
 
 ---
 
-[Panduan presentasi](PANDUAN_PRESENTASI_RSA.md) menghubungkan flowchart dengan fungsi di kode. [Alur pengujian](FLOW_TESTING.md) menjelaskan diagram alir dan tahapan verifikasi tes. [Daftar kasus uji](KASUS_UJI_RSA.md) memuat input dan hasil yang dicek oleh skrip tes. Untuk berbagi tanpa Git, kirim [paket ZIP](rsa_benchmark_untuk_tim.zip).
+Untuk berbagi tanpa Git, gunakan [paket ZIP](rsa_benchmark_untuk_tim.zip).
 
 ## Validasi dan data benchmark
 
@@ -60,3 +60,14 @@ Nilai RSA dikirim sebagai string desimal melalui API agar bilangan besar tetap p
 
 Jalankan `python test_web_api.py` untuk regresi API dan `node test_web_ui.js` untuk aritmetika dan transport integer pada antarmuka. Paket ZIP pada cabang ini mencakup dashboard dan peluncurnya.
 Bangun ulang paket setelah perubahan kode dengan `python build_team_zip.py`. Perintah ini memverifikasi bahwa seluruh sumber dalam ZIP sama dengan berkas proyek.
+
+## Versi online
+
+Dashboard tersedia di [proyekmd2-iv.vercel.app](https://proyekmd2-iv.vercel.app).
+CSV yang diunduh berisi hasil benchmark pada tab browser Anda. Versi lokal tetap
+menyimpan `benchmark_results.csv` seperti biasa.
+
+Untuk menjalankan pemeriksaan deployment, gunakan `python test_vercel.py`.
+Konfigurasi Vercel ada di `vercel.json`; deployment memakai Python 3.12 dan
+tidak memerlukan paket Python tambahan. Cabang produksi adalah `main` pada
+[justhenix/matdis2](https://github.com/justhenix/matdis2).
