@@ -93,7 +93,7 @@ def periksa_tidak_valid(skrip, kasus):
 
 
 def jalankan_suite():
-    sumber = Path(__file__).resolve().with_name("rsa_benchmark.py")
+    sumber = Path(__file__).resolve().parents[1] / "rsa_benchmark.py"
     hasil = []
     with tempfile.TemporaryDirectory(prefix="uji_rsa_") as folder:
         skrip = Path(folder) / sumber.name
@@ -121,21 +121,3 @@ def jalankan_suite():
                           "input": masukan, "ekspektasi": harapan,
                           "status": status, "keterangan": keterangan})
     return hasil
-
-
-def main():
-    try:
-        hasil = jalankan_suite()
-    except OSError as error:
-        print(f"FAIL: {error}")
-        return 1
-    for kasus in hasil:
-        print(f"{kasus['status']} {kasus['id']}: {kasus['keterangan']}")
-    lulus = sum(kasus["status"] == "PASS" for kasus in hasil)
-    gagal = len(hasil) - lulus
-    print(f"\nHasil: {lulus}/{len(hasil)} PASS, {gagal} FAIL.")
-    return 1 if gagal else 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

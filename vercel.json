@@ -1,12 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "buildCommand": "python3 build_web.py",
+  "buildCommand": "python3 -c \"from pathlib import Path; Path('public').mkdir(exist_ok=True); Path('public/index.html').write_bytes(Path('index.html').read_bytes())\"",
   "outputDirectory": "public",
   "functions": {
     "api/index.py": {
       "maxDuration": 300,
-      "includeFiles": "{server.py,rsa_benchmark.py,test_rsa_benchmark.py}"
+      "includeFiles": "{server.py,rsa_benchmark.py,lib/verification.py}"
     }
   },
   "rewrites": [

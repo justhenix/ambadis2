@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE_DIR))
 
 import rsa_benchmark as rsa
-import test_rsa_benchmark as test_runner
+from lib import verification
 
 
 def read_rsa_integer(data, name, default):
@@ -320,7 +320,7 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
 
     def handle_test_suite(self):
         try:
-            cases = test_runner.jalankan_suite()
+            cases = verification.jalankan_suite()
             passed = sum(case["status"] == "PASS" for case in cases)
             self.send_json_response({
                 "status": "ok",

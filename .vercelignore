@@ -5,9 +5,4 @@ __pycache__
 **/__pycache__
 *.zip
 *.md
-app.py
-test_web*
-test_vercel.py
-run_web_ui.*
-build_team_zip.py
 benchmark_results.csv
