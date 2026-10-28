@@ -20,8 +20,8 @@ VALID = [
 ]
 
 TIDAK_VALID = [
-    ("I1", input_manual(45, 59, 13, 1819), "p tidak lolos uji Fermat."),
-    ("I2", input_manual(43, 55, 13, 1819), "q tidak lolos uji Fermat."),
+    ("I1", input_manual(45, 59, 13, 1819), "p tidak lolos uji Miller-Rabin."),
+    ("I2", input_manual(43, 55, 13, 1819), "q tidak lolos uji Miller-Rabin."),
     ("I3", input_manual(43, 43, 13, 42), "p dan q harus prima ganjil yang berbeda."),
     ("I4", input_manual(43, 59, 3, 1819),
      "Invers tidak ada: a dan modulus harus relatif prima."),
@@ -44,7 +44,7 @@ def pastikan(kondisi, pesan):
 def jalankan(skrip, argumen):
     return subprocess.run(
         [sys.executable, str(skrip), *argumen,
-         "--trials", "10", "--warmup", "1", "--fermat-rounds", "5"],
+         "--trials", "10", "--warmup", "1", "--mr-rounds", "5"],
         cwd=skrip.parent, capture_output=True, text=True, timeout=15,
     )
 
@@ -73,7 +73,7 @@ def periksa_valid(skrip, kasus):
         "p": p, "q": q, "e": e, "pesan": pesan, "ciphertext": ciphertext,
         "bit_p": p.bit_length(), "bit_q": q.bit_length(),
         "bit_kunci": (p*q).bit_length(), "iterasi": 10, "pemanasan": 1,
-        "uji_fermat": 5, "status": "LULUS",
+        "uji_miller_rabin": 5, "status": "LULUS",
     }
     for kolom, nilai in harapan.items():
         pastikan(baris[0][kolom] == str(nilai), f"CSV: kolom {kolom} tidak cocok.")

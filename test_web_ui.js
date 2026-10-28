@@ -51,9 +51,17 @@ async function main() {
   vm.runInContext('checkInputsLive()',context);
   assert.equal(vm.runInContext("readInteger('param-m')",context),null);
   assert(!html.includes('99.9999') && !html.includes('fermat-error-rate'));
+  assert(!/fermat/i.test(html));
   await vm.runInContext('runTestSuite()',context);
   assert.equal(element('test-summary-badge').innerText,'FAIL');
   assert.equal(element('test-summary-title').innerText,'Ada Kasus Uji Gagal');
+  assert.match(element('row').innerHTML,/tabindex="0"/);
+  assert.match(element('row').innerHTML,/PASS berarti program berhasil menolaknya/);
+  assert.match(element('row').innerHTML,/title="FAIL berarti keluaran program tidak sesuai ekspektasi/);
+  assert(!html.includes('CRT ~3x-4x Lebih Cepat'));
+  assert(!html.includes('setMeasuredSpeedup'));
+  assert.equal(vm.runInContext('isPrimeCandidate(1373653n)',context),false);
+  assert.equal(vm.runInContext('isPrimeCandidate(252601n)',context),false);
   if (html.includes('text-input-msg')) {
     element('param-p').value='43';element('param-q').value='59';element('param-e').value='13';
     element('text-input-msg').value='  Ã©ðŸ˜€\n';
@@ -63,6 +71,6 @@ async function main() {
     assert.equal(element('res-dec-text').innerText,'  Ã©ðŸ˜€\n');
     assert.match(element('text-speedup-badge').innerText,/lebih lambat/);
   }
-  console.log('PASS: exact integers, steppers, request serialization, Fermat labels, speedup labels'+(html.includes('text-input-msg')?', exact text.':'.'));
+  console.log('PASS: exact integers, steppers, request serialization, Miller-Rabin labels, speedup labels'+(html.includes('text-input-msg')?', exact text.':'.'));
 }
 main().catch(error=>{console.error(error);process.exitCode=1});

@@ -43,19 +43,37 @@ def pangkat_modular(basis, eksponen, modulus):
     return hasil
 
 
-def prima_fermat(n, jumlah_uji=20):
-    """Mengembalikan True jika n lolos seluruh pengujian Fermat."""
+def prima_miller_rabin(n, jumlah_uji=20):
+    """Mengembalikan True jika n lolos seluruh pengujian Miller-Rabin.
+
+    Hasil False berarti n bukan prima. Hasil True berarti n kemungkinan
+    prima; untuk basis acak, peluang komposit lolos paling banyak (1/4)^k.
+    """
     if jumlah_uji < 1:
-        raise ValueError("Jumlah uji Fermat minimal 1.")
+        raise ValueError("Jumlah uji Miller-Rabin minimal 1.")
     if n < 2:
         return False
     # Penyaringan ini menghindari banyak perpangkatan pada kandidat komposit.
     for p in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37):
         if n % p == 0:
             return n == p
+    # Tulis n - 1 = 2^s * d dengan d ganjil.
+    d = n - 1
+    s = 0
+    while d % 2 == 0:
+        d //= 2
+        s += 1
     for _ in range(jumlah_uji):
         a = secrets.randbelow(n - 3) + 2
-        if pangkat_modular(a, n - 1, n) != 1:
+        x = pangkat_modular(a, d, n)
+        if x == 1 or x == n - 1:
+            continue
+        # Kuadratkan paling banyak s - 1 kali; harus bertemu n - 1.
+        for _ in range(s - 1):
+            x = (x * x) % n
+            if x == n - 1:
+                break
+        else:
             return False
     return True
 
@@ -66,12 +84,12 @@ def bangkitkan_prima(bit, jumlah_uji=20):
     while True:
         # Bit teratas menjamin panjang bit; bit terbawah menjamin angka ganjil.
         kandidat = secrets.randbits(bit) | (1 << (bit - 1)) | 1
-        if prima_fermat(kandidat, jumlah_uji):
+        if prima_miller_rabin(kandidat, jumlah_uji):
             return kandidat
 
 
 def bangkitkan_kunci(p, q, e):
-    """p dan q berasal dari contoh prima atau pembangkit prima_fermat."""
+    """p dan q berasal dari contoh prima atau pembangkit prima_miller_rabin."""
     if p <= 2 or q <= 2 or p % 2 == 0 or q % 2 == 0 or p == q:
         raise ValueError("p dan q harus prima ganjil yang berbeda.")
     n = p * q
@@ -176,7 +194,7 @@ def benchmark(kunci, pesan, iterasi, pemanasan, jumlah_uji):
         "bit_kunci": kunci["n"].bit_length(),
         "iterasi": iterasi,
         "pemanasan": pemanasan,
-        "uji_fermat": jumlah_uji,
+        "uji_miller_rabin": jumlah_uji,
         "rsa_rerata_ms": statistics.mean(waktu["RSA"]) / 1_000_000,
         "rsa_median_ms": rsa_median / 1_000_000,
         "crt_rerata_ms": statistics.mean(waktu["RSA-CRT"]) / 1_000_000,
@@ -217,7 +235,7 @@ def simpan_csv(hasil):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Bandingkan dekripsi RSA dan RSA-CRT dengan uji prima Fermat."
+        description="Bandingkan dekripsi RSA dan RSA-CRT dengan uji prima Miller-Rabin."
     )
     parser.add_argument(
         "--prime-bits", type=int, nargs="+",
@@ -239,8 +257,8 @@ def main():
         help="Jumlah pemanasan per metode per ukuran (bawaan: 3).",
     )
     parser.add_argument(
-        "--fermat-rounds", type=int, default=20,
-        help="Jumlah basis acak uji Fermat per kandidat (bawaan: 20).",
+        "--mr-rounds", type=int, default=20,
+        help="Jumlah basis acak uji Miller-Rabin per kandidat (bawaan: 20).",
     )
     args = parser.parse_args()
     if (args.p is None) != (args.q is None):
@@ -251,8 +269,8 @@ def main():
     ukuran_prima = args.prime_bits if args.prime_bits is not None else [256, 512, 1024]
     if not manual and any(bit < 16 for bit in ukuran_prima):
         parser.error("Ukuran prima otomatis minimal 16 bit.")
-    if min(args.trials, args.warmup, args.fermat_rounds) < 1:
-        parser.error("Percobaan, pemanasan, dan uji Fermat minimal 1.")
+    if min(args.trials, args.warmup, args.mr_rounds) < 1:
+        parser.error("Percobaan, pemanasan, dan uji Miller-Rabin minimal 1.")
     if args.e <= 1 or args.e % 2 == 0:
         parser.error("e harus ganjil dan lebih besar dari 1.")
     if args.pesan < 0:
@@ -260,29 +278,29 @@ def main():
 
     uji_contoh()
     print(f"\nPemanasan: {args.warmup}; percobaan: {args.trials} per metode.")
-    print(f"Uji Fermat: {args.fermat_rounds} basis acak.")
+    print(f"Uji Miller-Rabin: {args.mr_rounds} basis acak.")
     print(f"Input benchmark: e = {args.e}, M = {args.pesan}")
     hasil = []
     try:
         if manual:
-            if not prima_fermat(args.p, args.fermat_rounds):
-                raise ValueError("p tidak lolos uji Fermat.")
-            if not prima_fermat(args.q, args.fermat_rounds):
-                raise ValueError("q tidak lolos uji Fermat.")
+            if not prima_miller_rabin(args.p, args.mr_rounds):
+                raise ValueError("p tidak lolos uji Miller-Rabin.")
+            if not prima_miller_rabin(args.q, args.mr_rounds):
+                raise ValueError("q tidak lolos uji Miller-Rabin.")
             kunci = bangkitkan_kunci(args.p, args.q, args.e)
             print(f"Mode manual: p = {args.p}, q = {args.q}")
             print(f"n = {kunci['n']}, phi = {kunci['phi']}, d = {kunci['d']}")
             print(f"dP = {kunci['dP']}, dQ = {kunci['dQ']}, qInv = {kunci['qInv']}")
             hasil.append(benchmark(
-                kunci, args.pesan, args.trials, args.warmup, args.fermat_rounds
+                kunci, args.pesan, args.trials, args.warmup, args.mr_rounds
             ))
             print(f"C = {hasil[0]['ciphertext']}")
         else:
             for bit in ukuran_prima:
                 print(f"Mengukur p dan q masing-masing {bit} bit...", flush=True)
-                kunci = kunci_acak(bit, args.fermat_rounds, args.e)
+                kunci = kunci_acak(bit, args.mr_rounds, args.e)
                 hasil.append(benchmark(
-                    kunci, args.pesan, args.trials, args.warmup, args.fermat_rounds
+                    kunci, args.pesan, args.trials, args.warmup, args.mr_rounds
                 ))
     except ValueError as error:
         parser.error(str(error))

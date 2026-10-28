@@ -53,7 +53,7 @@ Fungsi `periksa_valid()` memastikan program memproses parameter yang benar, meng
 
 ```mermaid
 flowchart TD
-    StartV(["Mulai periksa_valid(kasus)"]) --> SetupArgs["Siapkan argumen CLI (--p, --q, --e, --message/--M)<br/>Set --trials 10, --warmup 1, --fermat-rounds 5"]
+    StartV(["Mulai periksa_valid(kasus)"]) --> SetupArgs["Siapkan argumen CLI (--p, --q, --e, --message/--M)<br/>Set --trials 10, --warmup 1, --mr-rounds 5"]
     SetupArgs --> CleanCSV["Hapus benchmark_results.csv lama di folder sementara"]
     CleanCSV --> SubprocessV["Eksekusi subprocess.run(timeout=15s)"]
     
@@ -116,8 +116,8 @@ flowchart TD
 ### Cakupan Kasus Tidak Valid (I1 – I10)
 | ID | Kategori Kesalahan | Kondisi Input | Pesan Kesalahan yang Diharapkan |
 |---|---|---|---|
-| **I1** | Uji Keprimaan Fermat | $p=45$ (bukan prima) | `p tidak lolos uji Fermat.` |
-| **I2** | Uji Keprimaan Fermat | $q=55$ (bukan prima) | `q tidak lolos uji Fermat.` |
+| **I1** | Uji Keprimaan Miller-Rabin | $p=45$ (bukan prima) | `p tidak lolos uji Miller-Rabin.` |
+| **I2** | Uji Keprimaan Miller-Rabin | $q=55$ (bukan prima) | `q tidak lolos uji Miller-Rabin.` |
 | **I3** | Integritas Pasangan Prima | $p=43, q=43$ ($p = q$) | `p dan q harus prima ganjil yang berbeda.` |
 | **I4** | Keterbalikan Modular (Bezout) | $e=3, \phi=2436$ ($\gcd(e, \phi) = 3 \neq 1$) | `Invers tidak ada: a dan modulus harus relatif prima.` |
 | **I5** | Paritas Eksponen | $e=2$ (genap) | `e harus ganjil dan lebih besar dari 1.` |

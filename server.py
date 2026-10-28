@@ -86,13 +86,13 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
             q = read_rsa_integer(data, "q", 59)
             e = read_rsa_integer(data, "e", 13)
             m = read_rsa_integer(data, "message", 1819)
-            fermat_rounds = int(data.get("fermat_rounds", 20))
+            mr_rounds = int(data.get("mr_rounds", 20))
 
-            # 1. Validasi Fermat
-            if not rsa.prima_fermat(p, fermat_rounds):
-                raise ValueError(f"p ({p}) tidak lolos uji prima Fermat.")
-            if not rsa.prima_fermat(q, fermat_rounds):
-                raise ValueError(f"q ({q}) tidak lolos uji prima Fermat.")
+            # 1. Validasi Miller-Rabin
+            if not rsa.prima_miller_rabin(p, mr_rounds):
+                raise ValueError(f"p ({p}) tidak lolos uji prima Miller-Rabin.")
+            if not rsa.prima_miller_rabin(q, mr_rounds):
+                raise ValueError(f"q ({q}) tidak lolos uji prima Miller-Rabin.")
 
             # 2. Bangkitkan Kunci
             kunci = rsa.bangkitkan_kunci(p, q, e)
@@ -111,7 +111,7 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
             h = (kunci["qInv"] * (m1 - m2)) % p
             m_crt = m2 + h * q
             if not m == m_rsa == m_crt:
-                raise ValueError("Verifikasi dekripsi gagal; periksa kandidat p dan q yang lolos Fermat.")
+                raise ValueError("Verifikasi dekripsi gagal; periksa kandidat p dan q yang lolos Miller-Rabin.")
 
             response = {
                 "status": "ok",
@@ -147,20 +147,20 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
                 raise ValueError("Teks pesan tidak boleh kosong.")
 
             key_mode = data.get("key_mode", "custom")
-            fermat_rounds = int(data.get("fermat_rounds", 20))
+            mr_rounds = int(data.get("mr_rounds", 20))
 
             if key_mode == "generate":
                 bits = int(data.get("bits", 128))
                 prime_bits = max(16, bits // 2)
-                kunci = rsa.kunci_acak(prime_bits, fermat_rounds, 65537)
+                kunci = rsa.kunci_acak(prime_bits, mr_rounds, 65537)
             else:
                 p = read_rsa_integer(data, "p", 43)
                 q = read_rsa_integer(data, "q", 59)
                 e = read_rsa_integer(data, "e", 13)
-                if not rsa.prima_fermat(p, fermat_rounds):
-                    raise ValueError(f"p ({p}) tidak lolos uji prima Fermat.")
-                if not rsa.prima_fermat(q, fermat_rounds):
-                    raise ValueError(f"q ({q}) tidak lolos uji prima Fermat.")
+                if not rsa.prima_miller_rabin(p, mr_rounds):
+                    raise ValueError(f"p ({p}) tidak lolos uji prima Miller-Rabin.")
+                if not rsa.prima_miller_rabin(q, mr_rounds):
+                    raise ValueError(f"q ({q}) tidak lolos uji prima Miller-Rabin.")
                 kunci = rsa.bangkitkan_kunci(p, q, e)
 
             n = kunci["n"]
@@ -266,8 +266,8 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
         try:
             bits = int(data.get("bits", 128))
             prime_bits = max(16, bits // 2)
-            fermat_rounds = int(data.get("fermat_rounds", 20))
-            kunci = rsa.kunci_acak(prime_bits, fermat_rounds, 65537)
+            mr_rounds = int(data.get("mr_rounds", 20))
+            kunci = rsa.kunci_acak(prime_bits, mr_rounds, 65537)
             self.send_json_response({
                 "status": "ok",
                 "p": str(kunci["p"]),
@@ -289,7 +289,7 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
             prime_bits = data.get("prime_bits", [256, 512, 1024])
             trials = int(data.get("trials", 30))
             warmup = int(data.get("warmup", 3))
-            fermat_rounds = int(data.get("fermat_rounds", 20))
+            mr_rounds = int(data.get("mr_rounds", 20))
             message = read_rsa_integer(data, "message", 1819)
 
             if not prime_bits:
@@ -297,8 +297,8 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
 
             hasil_list = []
             for bit in prime_bits:
-                kunci = rsa.kunci_acak(int(bit), fermat_rounds, 65537)
-                res = rsa.benchmark(kunci, message, trials, warmup, fermat_rounds)
+                kunci = rsa.kunci_acak(int(bit), mr_rounds, 65537)
+                res = rsa.benchmark(kunci, message, trials, warmup, mr_rounds)
                 hasil_list.append(res)
 
             # Simpan ke CSV
