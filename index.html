@@ -1207,13 +1207,19 @@
         tr.className = "hover:bg-slate-50 transition-colors";
         const isPass = item.status === 'PASS';
         const badgeColor = isPass ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800';
+        const categoryTooltip = item.tipe === 'CLI Tidak Valid'
+          ? 'Input sengaja tidak valid. PASS berarti program berhasil menolaknya sesuai ekspektasi, bukan berarti inputnya valid.'
+          : 'Input valid. PASS berarti ciphertext, hasil dekripsi, dan CSV sesuai ekspektasi.';
+        const statusTooltip = isPass
+          ? categoryTooltip
+          : 'FAIL berarti keluaran program tidak sesuai ekspektasi. Lihat kolom Keterangan Hasil.';
 
         tr.innerHTML = `
           <td class="px-4 py-3 font-mono font-bold text-brand-deep">${item.id}</td>
-          <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700">${item.tipe}</span></td>
+          <td class="px-4 py-3"><span tabindex="0" title="${categoryTooltip}" aria-label="${item.tipe}: ${categoryTooltip}" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 cursor-help">${item.tipe}</span></td>
           <td class="px-4 py-3 font-mono text-xs text-slate-700">${item.input}</td>
           <td class="px-4 py-3 text-xs text-slate-600">${item.ekspektasi}</td>
-          <td class="px-4 py-3 text-center"><span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${badgeColor}">${item.status}</span></td>
+          <td class="px-4 py-3 text-center"><span tabindex="0" title="${statusTooltip}" aria-label="${item.status}: ${statusTooltip}" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${badgeColor} cursor-help">${item.status}</span></td>
           <td class="px-4 py-3 text-xs text-slate-600 leading-relaxed">${item.keterangan}</td>
         `;
         tbody.appendChild(tr);
