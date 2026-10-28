@@ -92,34 +92,48 @@ def periksa_tidak_valid(skrip, kasus):
     pastikan(sebelum == sesudah, "Input tidak valid mengubah CSV.")
 
 
-def main():
+def jalankan_suite():
     sumber = Path(__file__).resolve().with_name("rsa_benchmark.py")
-    if not sumber.is_file():
-        print("FAIL: rsa_benchmark.py harus berada di folder yang sama.")
-        return 1
-    lulus = 0
-    gagal = 0
-    # Salinan sementara membuat pengujian tidak menimpa hasil benchmark pengguna.
+    hasil = []
     with tempfile.TemporaryDirectory(prefix="uji_rsa_") as folder:
         skrip = Path(folder) / sumber.name
         shutil.copy2(sumber, skrip)
-        for kasus in VALID:
+        for kasus in [*VALID, *TIDAK_VALID]:
+            valid = len(kasus) == 6
+            nomor = kasus[0]
+            if valid:
+                _, p, q, e, pesan, ciphertext = kasus
+                masukan = f"p={p}, q={q}, e={e}, M={pesan}"
+                harapan = f"C={ciphertext}, M={pesan}"
+            else:
+                _, argumen, kesalahan = kasus
+                masukan = " ".join(argumen)
+                harapan = f"Ditolak: {kesalahan}"
             try:
-                periksa_valid(skrip, kasus)
-                print(f"PASS {kasus[0]}: C = {kasus[5]}, M = {kasus[4]}")
-                lulus += 1
+                if valid:
+                    periksa_valid(skrip, kasus)
+                else:
+                    periksa_tidak_valid(skrip, kasus)
+                status, keterangan = "PASS", "Keluaran CLI dan CSV sesuai ekspektasi."
             except Exception as error:
-                print(f"FAIL {kasus[0]}: {error}")
-                gagal += 1
-        for kasus in TIDAK_VALID:
-            try:
-                periksa_tidak_valid(skrip, kasus)
-                print(f"PASS {kasus[0]}: input ditolak dengan pesan yang sesuai.")
-                lulus += 1
-            except Exception as error:
-                print(f"FAIL {kasus[0]}: {error}")
-                gagal += 1
-    print(f"\nHasil: {lulus}/16 PASS, {gagal} FAIL.")
+                status, keterangan = "FAIL", str(error)
+            hasil.append({"id": nomor, "tipe": "CLI Valid" if valid else "CLI Tidak Valid",
+                          "input": masukan, "ekspektasi": harapan,
+                          "status": status, "keterangan": keterangan})
+    return hasil
+
+
+def main():
+    try:
+        hasil = jalankan_suite()
+    except OSError as error:
+        print(f"FAIL: {error}")
+        return 1
+    for kasus in hasil:
+        print(f"{kasus['status']} {kasus['id']}: {kasus['keterangan']}")
+    lulus = sum(kasus["status"] == "PASS" for kasus in hasil)
+    gagal = len(hasil) - lulus
+    print(f"\nHasil: {lulus}/{len(hasil)} PASS, {gagal} FAIL.")
     return 1 if gagal else 0
 
 
