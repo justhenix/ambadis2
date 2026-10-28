@@ -1,7 +1,9 @@
+import base64
 import csv
 import json
 import os
 import sys
+import time
 import webbrowser
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -71,6 +73,10 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
             self.handle_benchmark(data)
         elif parsed.path == "/api/test-suite":
             self.handle_test_suite()
+        elif parsed.path == "/api/text-encrypt":
+            self.handle_text_encrypt(data)
+        elif parsed.path == "/api/generate-key":
+            self.handle_generate_key(data)
         else:
             self.send_json_response({"status": "error", "message": "Endpoint tidak ditemukan."}, status=404)
 
@@ -129,6 +135,152 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
             }
             self.send_json_response({key: str(value) if type(value) is int else value for key, value in response.items()})
 
+        except Exception as err:
+            self.send_json_response({"status": "error", "message": str(err)}, status=400)
+
+    def handle_text_encrypt(self, data):
+        try:
+            text = data.get("text", "")
+            if not isinstance(text, str):
+                raise ValueError("Teks pesan harus berupa string.")
+            if not text:
+                raise ValueError("Teks pesan tidak boleh kosong.")
+
+            key_mode = data.get("key_mode", "custom")
+            mr_rounds = int(data.get("mr_rounds", 20))
+
+            if key_mode == "generate":
+                bits = int(data.get("bits", 128))
+                prime_bits = max(16, bits // 2)
+                kunci = rsa.kunci_acak(prime_bits, mr_rounds, 65537)
+            else:
+                p = read_rsa_integer(data, "p", 43)
+                q = read_rsa_integer(data, "q", 59)
+                e = read_rsa_integer(data, "e", 13)
+                if not rsa.prima_miller_rabin(p, mr_rounds):
+                    raise ValueError(f"p ({p}) tidak lolos uji prima Miller-Rabin.")
+                if not rsa.prima_miller_rabin(q, mr_rounds):
+                    raise ValueError(f"q ({q}) tidak lolos uji prima Miller-Rabin.")
+                kunci = rsa.bangkitkan_kunci(p, q, e)
+
+            n = kunci["n"]
+            if n <= 255:
+                raise ValueError(f"Modulus n ({n}) terlalu kecil untuk teks byte ASCII/UTF-8 (perlu n > 255).")
+
+            # Ukuran blok maksimal dalam byte agar nilai integer blok terjamin < n
+            block_size = max(1, (n.bit_length() - 1) // 8)
+
+            raw_bytes = text.encode("utf-8")
+            chunks = [raw_bytes[i:i + block_size] for i in range(0, len(raw_bytes), block_size)]
+
+            ciphers = []
+            chunk_lengths = []
+            blocks_info = []
+
+            for idx, ch in enumerate(chunks):
+                m_int = int.from_bytes(ch, "big")
+                if m_int >= n:
+                    raise ValueError("Nilai blok pesan harus lebih kecil dari modulus n.")
+                c_int = rsa.enkripsi(m_int, kunci["e"], n)
+                ciphers.append(c_int)
+                chunk_lengths.append(len(ch))
+
+                if idx < 30:  # Batasi preview per blok hingga 30 pertama agar UI tetap ringan
+                    blocks_info.append({
+                        "index": idx + 1,
+                        "text": ch.decode("utf-8", errors="replace"),
+                        "hex_bytes": ch.hex().upper(),
+                        "int_m": str(m_int),
+                        "int_c": str(c_int),
+                        "hex_c": hex(c_int)[2:].upper(),
+                    })
+
+            # Ukur Dekripsi Standar
+            t0 = time.perf_counter_ns()
+            dec_rsa_bytes = bytearray()
+            for c_int, ch_len in zip(ciphers, chunk_lengths):
+                m_dec = rsa.dekripsi_rsa(c_int, kunci["d"], n)
+                dec_rsa_bytes.extend(m_dec.to_bytes(ch_len, "big"))
+            t_rsa = (time.perf_counter_ns() - t0) / 1_000_000  # ms
+
+            # Ukur Dekripsi CRT
+            t0 = time.perf_counter_ns()
+            dec_crt_bytes = bytearray()
+            for c_int, ch_len in zip(ciphers, chunk_lengths):
+                m_dec = rsa.dekripsi_crt(c_int, kunci["p"], kunci["q"], kunci["dP"], kunci["dQ"], kunci["qInv"])
+                dec_crt_bytes.extend(m_dec.to_bytes(ch_len, "big"))
+            t_crt = (time.perf_counter_ns() - t0) / 1_000_000  # ms
+
+            is_valid = bytes(dec_rsa_bytes) == bytes(dec_crt_bytes) == raw_bytes
+            if not is_valid:
+                raise ValueError("Verifikasi dekripsi RSA dan RSA-CRT gagal.")
+            text_decrypted_rsa = dec_rsa_bytes.decode("utf-8")
+            text_decrypted = dec_crt_bytes.decode("utf-8")
+
+            speedup = (t_rsa / t_crt) if t_crt > 0 else 1.0
+
+            # Ciphertext representasi
+            hex_ciphers = [hex(c)[2:].upper() for c in ciphers]
+            hex_joined = " ".join(hex_ciphers)
+            
+            # Base64 representasi
+            packed = ",".join(str(c) for c in ciphers).encode("utf-8")
+            b64_cipher = base64.b64encode(packed).decode("ascii")
+
+            self.send_json_response({
+                "status": "ok",
+                "key_info": {
+                    "p": str(kunci["p"]),
+                    "q": str(kunci["q"]),
+                    "n": str(kunci["n"]),
+                    "phi": str(kunci["phi"]),
+                    "e": str(kunci["e"]),
+                    "d": str(kunci["d"]),
+                    "dP": str(kunci["dP"]),
+                    "dQ": str(kunci["dQ"]),
+                    "qInv": str(kunci["qInv"]),
+                    "bit_length": kunci["n"].bit_length(),
+                },
+                "text_original": text,
+                "text_decrypted": text_decrypted,
+                "text_decrypted_rsa": text_decrypted_rsa,
+                "text_decrypted_crt": text_decrypted,
+                "is_valid": is_valid,
+                "total_bytes": len(raw_bytes),
+                "block_size_bytes": block_size,
+                "total_blocks": len(chunks),
+                "blocks": blocks_info,
+                "has_more_blocks": len(chunks) > 30,
+                "ciphertext_hex": hex_joined,
+                "ciphertext_base64": b64_cipher,
+                "ciphers_count": len(ciphers),
+                "rsa_time_ms": round(t_rsa, 4),
+                "crt_time_ms": round(t_crt, 4),
+                "speedup": round(speedup, 2),
+            })
+
+        except Exception as err:
+            self.send_json_response({"status": "error", "message": str(err)}, status=400)
+
+    def handle_generate_key(self, data):
+        try:
+            bits = int(data.get("bits", 128))
+            prime_bits = max(16, bits // 2)
+            mr_rounds = int(data.get("mr_rounds", 20))
+            kunci = rsa.kunci_acak(prime_bits, mr_rounds, 65537)
+            self.send_json_response({
+                "status": "ok",
+                "p": str(kunci["p"]),
+                "q": str(kunci["q"]),
+                "n": str(kunci["n"]),
+                "phi": str(kunci["phi"]),
+                "e": str(kunci["e"]),
+                "d": str(kunci["d"]),
+                "dP": str(kunci["dP"]),
+                "dQ": str(kunci["dQ"]),
+                "qInv": str(kunci["qInv"]),
+                "bit_length": kunci["n"].bit_length(),
+            })
         except Exception as err:
             self.send_json_response({"status": "error", "message": str(err)}, status=400)
 

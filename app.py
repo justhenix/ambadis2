@@ -107,7 +107,7 @@ with tab_calc:
     with col_in4:
         m_val = st.text_input("Pesan M (0 <= M < n):", value=str(default_m))
 
-    mr_check_rounds = st.slider("Jumlah Pengujian Miller-Rabin untuk Validasi Prima:", 1, 50, 20)
+    mr_check_rounds = st.slider("Jumlah Ronde Miller-Rabin untuk Validasi Prima:", 1, 50, 20)
 
     if st.button("Hitung & Jalankan Simulasi", type="primary", use_container_width=True):
         try:
@@ -217,7 +217,7 @@ with tab_bench:
         warmup_count = st.slider("Jumlah Pemanasan (Warmup):", min_value=1, max_value=10, value=3, step=1)
     with col_b3:
         bench_message = st.text_input("Pesan Uji M:", value="1819")
-        bench_mr = st.slider("Basis Miller-Rabin Rounds:", min_value=5, max_value=30, value=20, step=5)
+        bench_mr = st.slider("Ronde Miller-Rabin:", min_value=5, max_value=30, value=20, step=5)
 
     if st.button("Mulai Benchmark", type="primary", use_container_width=True):
         if not bit_options:

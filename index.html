@@ -141,6 +141,10 @@
               class="tab-btn flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-medium text-slate-500 hover:text-brand-deep border-b-2 border-transparent hover:border-brand-sky rounded-t-lg transition-colors cursor-pointer">
         <span>3. Verifikasi Kasus Uji</span>
       </button>
+      <button id="tab-btn-4" onclick="switchTab(4)" type="button"
+              class="tab-btn flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-medium text-slate-500 hover:text-brand-deep border-b-2 border-transparent hover:border-brand-sky rounded-t-lg transition-colors cursor-pointer">
+        <span>4. Enkripsi Pesan Teks (String)</span>
+      </button>
     </nav>
   </header>
 
@@ -229,9 +233,9 @@
             <span id="badge-m" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-semibold whitespace-nowrap">0 ≤ M &lt; n</span>
           </div>
           <div class="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-ocean">
-            <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepVal('param-m', -10); runSimulasi();" type="button">−</button>
+            <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepVal('param-m', -10); debouncedRunSimulasi(200);" type="button">−</button>
             <input class="w-full border-0 text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-0" id="param-m" type="text" inputmode="numeric" value="1819" oninput="checkInputsLive()">
-            <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepVal('param-m', 10); runSimulasi();" type="button">+</button>
+            <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepVal('param-m', 10); debouncedRunSimulasi(200);" type="button">+</button>
           </div>
         </div>
       </div>
@@ -240,14 +244,14 @@
       <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-3">
         <div class="flex items-center justify-between">
           <div class="space-y-0.5">
-            <span class="text-xs font-bold text-brand-deep">Jumlah Pengujian Miller-Rabin untuk Validasi Prima:</span>
+            <span class="text-xs font-bold text-brand-deep">Jumlah Ronde Miller-Rabin untuk Validasi Prima:</span>
             <p class="text-[11px] text-slate-400">Pemeriksaan kandidat prima dengan uji Miller-Rabin sebelum pembentukan kunci.</p>
           </div>
           <span class="px-2.5 py-0.5 rounded-md font-mono text-xs font-bold bg-brand-deep text-white shadow-sm" id="mr-value-badge">20 Putaran</span>
         </div>
         <input class="w-full cursor-pointer" id="mr-slider" max="30" min="1" oninput="updateMRSlider(this.value)" type="range" value="20">
         
-        <p class="text-[11px] text-slate-500">Lolos Miller-Rabin berarti kemungkinan prima; untuk basis acak independen, peluang komposit lolos satu ronde paling banyak 1/4.</p>
+        <p class="text-[11px] text-slate-500">Lolos Miller-Rabin berarti kemungkinan prima (probably prime); bilangan komposit, termasuk bilangan Carmichael, lolos satu ronde dengan peluang paling banyak 1/4.</p>
       </div>
 
       <!-- Error Message Container (Hidden by default) -->
@@ -473,7 +477,7 @@
         <!-- Miller-Rabin Rounds Slider -->
         <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-brand-deep">Basis Uji Miller-Rabin:</span>
+            <span class="text-xs font-bold text-brand-deep">Ronde Uji Miller-Rabin:</span>
             <span class="px-2 py-0.5 rounded font-mono text-xs font-bold bg-brand-deep text-white" id="bench-mr-val">20</span>
           </div>
           <input class="w-full cursor-pointer" id="bench-mr-slider" max="30" min="5" step="5" oninput="document.getElementById('bench-mr-val').innerText = this.value" type="range" value="20">
@@ -650,6 +654,221 @@
     </section>
   </div>
 
+  <!-- ========================================================== -->
+  <!-- TAB 4: ENKRIPSI PESAN TEKS (STRING)                        -->
+  <!-- ========================================================== -->
+  <div id="tab-content-4" class="tab-pane hidden space-y-7">
+    <!-- Configuration & Text Input Card -->
+    <section class="bg-white rounded-2xl p-6 md:p-8 border border-brand-border shadow-subtle space-y-6">
+      <div class="border-b border-slate-100 pb-4">
+        <h2 class="text-lg md:text-xl font-bold text-brand-deep">
+          Enkripsi &amp; Dekripsi Pesan Teks (String / Kalimat)
+        </h2>
+        <p class="text-xs md:text-sm text-slate-500 mt-1">
+          Ketik kalimat teks bebas apa saja untuk dienkripsi menjadi Ciphertext (Hex/Base64) dan didekripsi kembali dengan komparasi RSA vs RSA-CRT.
+        </p>
+
+      </div>
+
+      <!-- Key Selection Mode: Always Sync from Tab 1 -->
+      <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-brand-deep uppercase tracking-wider">
+            Sumber Kunci: Menggunakan Parameter Kunci Tab 1
+          </span>
+          <button onclick="switchTab(1)" type="button" class="text-[11px] font-semibold text-brand-ocean hover:text-brand-deep flex items-center gap-1 transition-colors cursor-pointer">
+            <span>Ubah Kunci di Tab 1</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          </button>
+        </div>
+
+        <!-- Active Key Info Badge -->
+        <div id="text-active-key-summary" class="bg-white border border-brand-border rounded-xl p-3.5 text-xs flex flex-wrap items-center justify-between gap-3 shadow-sm">
+          <div class="flex flex-wrap items-center gap-2 font-mono text-[11px]">
+            <span class="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-lg font-semibold" id="text-key-p-badge">p = 43</span>
+            <span class="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-lg font-semibold" id="text-key-q-badge">q = 59</span>
+            <span class="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-lg font-semibold" id="text-key-n-badge">n = 2537 (12 bit)</span>
+            <span class="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-lg font-semibold" id="text-key-e-badge">e = 13</span>
+            <span class="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-lg font-semibold" id="text-key-cap-badge">Kapasitas Blok: 1 Byte (8 bit)</span>
+          </div>
+          <span class="text-[11px] text-slate-400 italic">Otomatis tersinkronisasi dari Tab 1</span>
+        </div>
+      </div>
+
+      <!-- Textarea Input Form -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <label for="text-input-msg" class="text-xs font-bold text-brand-deep uppercase tracking-wider">
+            Masukkan Pesan Teks (Plaintext):
+          </label>
+          <div class="text-[11px] font-mono text-slate-400" id="text-char-counter">
+            0 karakter &bull; 0 byte UTF-8 &bull; 0 blok
+          </div>
+        </div>
+        <textarea id="text-input-msg" rows="3" oninput="updateTextCounterLive()"
+                  placeholder="Saya cinta Matematika Diskrit"
+                  class="w-full text-sm font-sans p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-ocean focus:border-brand-ocean outline-none transition-all">Saya cinta Matematika Diskrit</textarea>
+
+
+      </div>
+
+      <!-- Action Button -->
+      <div>
+        <button id="btn-text-encrypt" onclick="runTextEncrypt()" type="button"
+                class="w-full sm:w-auto px-7 py-3 bg-brand-deep hover:bg-brand-ocean text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center space-x-2.5 cursor-pointer">
+          <svg id="btn-text-spinner" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white hidden" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+          <span id="btn-text-label">Enkripsi &amp; Dekripsi Pesan Teks</span>
+        </button>
+      </div>
+
+      <!-- Error Message Box -->
+      <div id="text-error-box" class="hidden p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-start gap-2.5">
+        <svg class="w-4 h-4 text-red-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+        <span id="text-error-msg">Terjadi kesalahan pada enkripsi teks.</span>
+      </div>
+    </section>
+
+    <!-- Results Section (Visible after calculation) -->
+    <div id="text-results-section" class="hidden space-y-7">
+      
+      <!-- Verification & Speedup Highlight Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Verification Card -->
+        <div class="bg-white rounded-2xl p-5 border border-brand-border shadow-subtle flex flex-col justify-between space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Status Keaslian Pesan</span>
+            <span id="text-valid-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">100% Identik</span>
+          </div>
+          <div>
+            <div class="text-xl font-bold text-emerald-700 flex items-center gap-1.5">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Verifikasi Berhasil</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Teks hasil dekripsi persis sama tanpa ada karakter yang hilang.</p>
+          </div>
+        </div>
+
+        <!-- RSA Standar Time Card -->
+        <div class="bg-white rounded-2xl p-5 border border-brand-border shadow-subtle flex flex-col justify-between space-y-2">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Waktu Dekripsi RSA Standar</span>
+          <div>
+            <div class="text-2xl font-extrabold font-mono text-brand-deep" id="text-rsa-time">0.0000 ms</div>
+            <p class="text-xs text-slate-500 mt-1">Eksponensiasi langsung M = C<sup>d</sup> mod n</p>
+          </div>
+        </div>
+
+        <!-- RSA-CRT Time & Speedup Card -->
+        <div class="bg-white rounded-2xl p-5 border border-amber-200 bg-amber-50/30 shadow-subtle flex flex-col justify-between space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-900 uppercase tracking-wider">Waktu Dekripsi RSA-CRT</span>
+            <span id="text-speedup-badge" class="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-200 text-amber-900"></span>
+          </div>
+          <div>
+            <div class="text-2xl font-extrabold font-mono text-emerald-700" id="text-crt-time">0.0000 ms</div>
+            <p class="text-xs text-amber-800/80 mt-1">Dekripsi modulo p &amp; q + Rekonstruksi Garner</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Plaintext vs Decrypted Side-by-Side Comparison -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Original Plaintext Box -->
+        <div class="bg-white rounded-2xl p-5 border border-brand-border shadow-subtle space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-brand-deep uppercase tracking-wider">Teks Asli (Plaintext):</span>
+            <span class="text-[11px] font-mono text-slate-400" id="res-orig-len">0 karakter</span>
+          </div>
+          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 font-sans text-sm text-slate-800 break-words leading-relaxed max-h-40 overflow-y-auto" style="white-space: pre-wrap" id="res-orig-text">
+            -
+          </div>
+        </div>
+
+        <!-- Decrypted Plaintext Box -->
+        <div class="bg-white rounded-2xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-subtle space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider">Teks Hasil Dekripsi (Decrypted):</span>
+            <span class="text-[11px] font-mono text-emerald-700 font-semibold" id="res-dec-len">Cocok Sempurna</span>
+          </div>
+          <div class="bg-white p-3.5 rounded-xl border border-emerald-200 font-sans text-sm text-emerald-950 break-words leading-relaxed max-h-40 overflow-y-auto" style="white-space: pre-wrap" id="res-dec-text">
+            -
+          </div>
+        </div>
+      </div>
+
+      <!-- Ciphertext Outputs (Hex & Base64) -->
+      <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-subtle space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h3 class="text-sm font-bold text-brand-deep uppercase tracking-wider">Ciphertext Terenkripsi</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Hasil enkripsi modular tiap blok yang siap dikirim secara aman.</p>
+          </div>
+          <span class="text-xs font-mono font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg" id="res-cipher-blocks-count">0 Blok Cipher</span>
+        </div>
+
+        <!-- Hex Cipher View -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-600">Representasi Hexadecimal (Per Blok Spasi):</span>
+            <button onclick="copyToClipboard('res-cipher-hex', 'btn-copy-hex')" id="btn-copy-hex" type="button" class="text-[11px] font-bold text-brand-deep hover:text-brand-ocean cursor-pointer flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              <span>Salin HEX</span>
+            </button>
+          </div>
+          <div class="bg-slate-900 text-sky-300 p-3.5 rounded-xl font-mono text-xs break-all leading-relaxed max-h-36 overflow-y-auto selection:bg-sky-500 selection:text-white" id="res-cipher-hex">
+            -
+          </div>
+        </div>
+
+        <!-- Base64 Cipher View -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-600">Representasi Base64:</span>
+            <button onclick="copyToClipboard('res-cipher-base64', 'btn-copy-b64')" id="btn-copy-b64" type="button" class="text-[11px] font-bold text-brand-deep hover:text-brand-ocean cursor-pointer flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              <span>Salin Base64</span>
+            </button>
+          </div>
+          <div class="bg-slate-900 text-amber-300 p-3.5 rounded-xl font-mono text-xs break-all leading-relaxed max-h-28 overflow-y-auto selection:bg-amber-500 selection:text-slate-900" id="res-cipher-base64">
+            -
+          </div>
+        </div>
+      </div>
+
+      <!-- Step-by-Step Blocks Breakdown Table -->
+      <div class="bg-white rounded-2xl border border-brand-border shadow-subtle overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+          <div>
+            <h4 class="font-bold text-brand-deep text-xs uppercase tracking-wider">Rincian Dekomposisi Per Blok Modular</h4>
+            <p class="text-[11px] text-slate-500 mt-0.5">Memperlihatkan konversi karakter teks &rarr; Byte Hex &rarr; Angka Integer M &rarr; Ciphertext C</p>
+          </div>
+          <span class="text-[11px] font-mono text-slate-500" id="res-blocks-preview-note">Menampilkan blok data</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50 text-slate-600 font-bold uppercase text-[11px] tracking-wider border-b border-slate-200">
+              <tr>
+                <th class="px-4 py-3">Blok #</th>
+                <th class="px-4 py-3">Potongan Teks</th>
+                <th class="px-4 py-3">Hex Bytes</th>
+                <th class="px-4 py-3">Integer Plaintext (M)</th>
+                <th class="px-4 py-3">Ciphertext Integer (C)</th>
+                <th class="px-4 py-3">Hex Cipher</th>
+              </tr>
+            </thead>
+            <tbody id="text-blocks-tbody" class="divide-y divide-slate-100 font-mono text-xs">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </main>
 
 <!-- ========================================================== -->
@@ -726,14 +945,16 @@
 <!-- JAVASCRIPT LOGIC & API INTEGRATION                         -->
 <!-- ========================================================== -->
 <script>
-  // Helper for Stepper inputs
-  // Primality test helper
+  // Debounce helper to prevent rapid request lag
   let simulasiDebounceTimer = null;
   function debouncedRunSimulasi(delay = 250) {
     clearTimeout(simulasiDebounceTimer);
-    simulasiDebounceTimer = setTimeout(runSimulasi, delay);
+    simulasiDebounceTimer = setTimeout(() => {
+      runSimulasi();
+    }, delay);
   }
 
+  // Fast BigInt modular power for large primality checking
   function readInteger(id) {
     const value = document.getElementById(id)?.value.trim() ?? '';
     return /^[+-]?\d+$/.test(value) ? BigInt(value) : null;
@@ -888,18 +1109,23 @@
     document.getElementById('mr-value-badge').innerText = `${val} Putaran`;
   }
 
-  // Tab Switcher
+  // Tab Switcher (Support 4 tabs)
   function switchTab(tabIndex) {
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 4; i++) {
       const btn = document.getElementById(`tab-btn-${i}`);
       const pane = document.getElementById(`tab-content-${i}`);
-      if (i === tabIndex) {
-        btn.className = "tab-btn flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-semibold text-brand-deep border-b-2 border-brand-deep bg-white rounded-t-lg transition-all shadow-[0_-2px_6px_rgba(8,98,136,0.04)] cursor-pointer";
-        pane.classList.remove('hidden');
-      } else {
-        btn.className = "tab-btn flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-medium text-slate-500 hover:text-brand-deep border-b-2 border-transparent hover:border-brand-sky rounded-t-lg transition-colors cursor-pointer";
-        pane.classList.add('hidden');
+      if (btn && pane) {
+        if (i === tabIndex) {
+          btn.className = "tab-btn flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-semibold text-brand-deep border-b-2 border-brand-deep bg-white rounded-t-lg transition-all shadow-[0_-2px_6px_rgba(8,98,136,0.04)] cursor-pointer";
+          pane.classList.remove('hidden');
+        } else {
+          btn.className = "tab-btn flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-medium text-slate-500 hover:text-brand-deep border-b-2 border-transparent hover:border-brand-sky rounded-t-lg transition-colors cursor-pointer";
+          pane.classList.add('hidden');
+        }
       }
+    }
+    if (tabIndex === 4) {
+      updateTextKeySummaryUI();
     }
   }
 
@@ -1260,11 +1486,198 @@
     }
   }
 
+  // ============================================================
+  // TAB 4: ENKRIPSI PESAN TEKS (STRING)
+  // ============================================================
+  function updateTextKeySummaryUI() {
+    const p = readInteger('param-p');
+    const q = readInteger('param-q');
+    const e = readInteger('param-e');
+    const n = p !== null && q !== null ? p * q : 0n;
+    const bits = n > 0n ? n.toString(2).length : 0;
+    const kBytes = Math.max(0, Math.floor((bits - 1) / 8));
+
+    const pBadge = document.getElementById('text-key-p-badge');
+    const qBadge = document.getElementById('text-key-q-badge');
+    const nBadge = document.getElementById('text-key-n-badge');
+    const eBadge = document.getElementById('text-key-e-badge');
+    const capBadge = document.getElementById('text-key-cap-badge');
+
+    if (pBadge) pBadge.innerText = `p = ${p}`;
+    if (qBadge) qBadge.innerText = `q = ${q}`;
+    if (nBadge) nBadge.innerText = `n = ${n} (${bits} bit)`;
+    if (eBadge) eBadge.innerText = `e = ${e}`;
+    if (capBadge) capBadge.innerText = `Kapasitas Blok: ${kBytes} Byte (${kBytes * 8} bit)`;
+
+    updateTextCounterLive();
+  }
+
+  function updateTextCounterLive() {
+    const textInput = document.getElementById('text-input-msg');
+    if (!textInput) return;
+    const text = textInput.value;
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(text).length;
+
+    const p = readInteger('param-p');
+    const q = readInteger('param-q');
+    const n = p !== null && q !== null ? p * q : 0n;
+    const bits = n > 0n ? n.toString(2).length : 0;
+    const kBytes = Math.max(0, Math.floor((bits - 1) / 8));
+
+    const blocks = kBytes > 0 ? Math.ceil(bytes / kBytes) : 0;
+    const counterElem = document.getElementById('text-char-counter');
+    if (counterElem) {
+      counterElem.innerText = `${text.length} karakter • ${bytes} byte UTF-8 • ${blocks} blok (${kBytes} B/blok)`;
+    }
+  }
+
+  function setTextPreset(val) {
+    const textInput = document.getElementById('text-input-msg');
+    if (textInput) {
+      textInput.value = val;
+      updateTextCounterLive();
+      runTextEncrypt();
+    }
+  }
+
+  let textRequestId = 0;
+  async function runTextEncrypt() {
+    const requestId = ++textRequestId;
+    const textInput = document.getElementById('text-input-msg');
+    const text = textInput ? textInput.value : "";
+    const errBox = document.getElementById('text-error-box');
+    const errMsg = document.getElementById('text-error-msg');
+    const spinner = document.getElementById('btn-text-spinner');
+    const btnLabel = document.getElementById('btn-text-label');
+    const resultsSec = document.getElementById('text-results-section');
+
+    resultsSec.classList.add('hidden');
+    errBox.classList.add('hidden');
+
+    spinner.classList.remove('hidden');
+    btnLabel.innerText = "Mengenkripsi & Mendekripsi...";
+
+    const p = readInteger('param-p');
+    const q = readInteger('param-q');
+    const e = readInteger('param-e');
+
+    const payload = {
+      text: text,
+      key_mode: 'simulasi',
+      p: p === null ? '' : p.toString(),
+      q: q === null ? '' : q.toString(),
+      e: e === null ? '' : e.toString()
+    };
+
+    try {
+      if (!text) {
+        throw new Error("Pesan teks tidak boleh kosong. Silakan ketik kalimat Anda.");
+      }
+      const resp = await fetch('/api/text-encrypt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+
+      if (requestId !== textRequestId) return;
+      if (data.status !== 'ok') {
+        throw new Error(data.message || 'Gagal mengenkripsi pesan.');
+      }
+
+      // Update UI dengan hasil
+      document.getElementById('text-rsa-time').innerText = `${data.rsa_time_ms.toFixed(4)} ms`;
+      document.getElementById('text-crt-time').innerText = `${data.crt_time_ms.toFixed(4)} ms`;
+      document.getElementById('text-speedup-badge').innerText = `${speedupLabel(data.speedup)}`;
+
+      // Text comparison
+      document.getElementById('res-orig-text').innerText = data.text_original;
+      document.getElementById('res-orig-len').innerText = `${data.text_original.length} karakter (${data.total_bytes} byte)`;
+      document.getElementById('res-dec-text').innerText = data.text_decrypted;
+      
+      const validBadge = document.getElementById('text-valid-badge');
+      if (data.is_valid) {
+        validBadge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800";
+        validBadge.innerText = "100% Identik & Valid";
+      } else {
+        validBadge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-800";
+        validBadge.innerText = "Ada Ketidakcocokan";
+      }
+
+      // Ciphertext
+      document.getElementById('res-cipher-hex').innerText = data.ciphertext_hex;
+      document.getElementById('res-cipher-base64').innerText = data.ciphertext_base64;
+      document.getElementById('res-cipher-blocks-count').innerText = `${data.total_blocks} Blok Cipher`;
+
+      // Table breakdown
+      const tbody = document.getElementById('text-blocks-tbody');
+      tbody.innerHTML = '';
+      data.blocks.forEach(b => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition-colors";
+        tr.innerHTML = `
+          <td class="px-4 py-2.5 font-bold text-brand-deep">#${b.index}</td>
+          <td class="px-4 py-2.5 font-sans font-semibold text-slate-800 bg-slate-50/70">${escapeHtml(b.text)}</td>
+          <td class="px-4 py-2.5 text-slate-500">${b.hex_bytes}</td>
+          <td class="px-4 py-2.5 text-brand-deep">${truncateStr(b.int_m, 20)}</td>
+          <td class="px-4 py-2.5 text-amber-700 font-bold">${truncateStr(b.int_c, 20)}</td>
+          <td class="px-4 py-2.5 text-sky-700 font-semibold">${truncateStr(b.hex_c, 24)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const noteElem = document.getElementById('res-blocks-preview-note');
+      if (data.has_more_blocks) {
+        noteElem.innerText = `Menampilkan 30 dari ${data.total_blocks} total blok`;
+      } else {
+        noteElem.innerText = `Total ${data.total_blocks} blok ditampilkan`;
+      }
+
+      resultsSec.classList.remove('hidden');
+      resultsSec.scrollIntoView({ behavior: 'smooth' });
+
+    } catch (err) {
+      if (requestId !== textRequestId) return;
+      errMsg.innerText = err.message;
+      errBox.classList.remove('hidden');
+    } finally {
+      if (requestId === textRequestId) {
+        spinner.classList.add('hidden');
+        btnLabel.innerText = "Enkripsi & Dekripsi Pesan Teks";
+      }
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+
+  function truncateStr(str, maxLen) {
+    if (!str) return '';
+    return str.length > maxLen ? str.slice(0, maxLen) + '...' : str;
+  }
+
+  function copyToClipboard(elemId, btnId) {
+    const text = document.getElementById(elemId).innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById(btnId);
+      const origHtml = btn.innerHTML;
+      btn.innerHTML = `<span class="text-emerald-600 font-bold">Tersalin!</span>`;
+      setTimeout(() => { btn.innerHTML = origHtml; }, 2000);
+    }).catch(() => {
+      alert("Gagal menyalin otomatis.");
+    });
+  }
+
+
   // Initial Calculation on Page Load
   window.addEventListener('DOMContentLoaded', () => {
     checkInputsLive();
     updateBitPillStyles();
     runSimulasi();
+    updateTextKeySummaryUI();
   });
 </script>
 

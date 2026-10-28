@@ -21,4 +21,4 @@ Kedua metode memakai kunci, ciphertext, dan pesan yang sama. Yang masuk timer ha
 
 Pada percobaan pertama, RSA standar dijalankan lebih dulu; percobaan berikutnya dimulai dengan CRT. Urutan ini terus bergantian. Program melaporkan rerata serta median, lalu membagi median RSA dengan median CRT untuk mendapatkan rasio percepatan. Jadi, rasio 3 berarti median waktu RSA standar tiga kali median waktu CRT.
 
-Ada beberapa penyesuaian dari pseudocode: opsi terminal menggantikan read/lagi, jumlah basis Miller-Rabin bawaan menjadi 20 (pseudocode: 5), dan program menambahkan pemanasan, median, serta CSV. Koreksi sisa negatif tidak diperlukan karena modulo dengan pembagi positif di Python sudah menghasilkan sisa tidak negatif. Pada mode manual, program mencetak C setelah pengukuran.
+Ada beberapa penyesuaian dari pseudocode: opsi terminal menggantikan read/lagi, jumlah basis Miller-Rabin bawaan 20 (sama dengan pseudocode), dan program menambahkan pemanasan, median, serta CSV. Koreksi sisa negatif tidak diperlukan karena modulo dengan pembagi positif di Python sudah menghasilkan sisa tidak negatif. Pada mode manual, program mencetak C setelah pengukuran.
