@@ -45,9 +45,17 @@ py server.py
 Browser Anda akan otomatis terbuka di `http://localhost:8000`. Fitur web meliputi:
 1. **Simulasi & Langkah Matematis**: Perhitungan step-by-step $n, \phi(n), d, d_P, d_Q, q_{inv}$, enkripsi $C$, dan komparasi dekripsi standar vs CRT.
 2. **Benchmark & Visualisasi Grafik**: Uji kecepatan multi-bit ($256, 512, 1024$ bit) dengan bar chart waktu eksekusi, line chart rasio *speedup*, dan tombol unduh CSV langsung.
-3. **Verifikasi Kasus Uji**: Menjalankan 16 kasus uji otomatis dengan badge status visual.
+3. **Verifikasi Kasus Uji**: Menjalankan 16 kasus CLI pada salinan sementara dan menampilkan PASS/FAIL berdasarkan keluaran aktual.
 4. **Enkripsi Pesan Teks (String)**: Enkripsi kalimat teks bebas (UTF-8) menjadi Ciphertext (HEX & Base64), pemotongan blok modular otomatis ($M < n$), serta bukti dekripsi kembali ke teks asli dengan perbandingan kecepatan RSA Standar vs RSA-CRT.
 
 ---
 
 [Panduan presentasi](PANDUAN_PRESENTASI_RSA.md) menghubungkan flowchart dengan fungsi di kode. [Alur pengujian](FLOW_TESTING.md) menjelaskan diagram alir dan tahapan verifikasi tes. [Daftar kasus uji](KASUS_UJI_RSA.md) memuat input dan hasil yang dicek oleh skrip tes. Untuk berbagi tanpa Git, kirim [paket ZIP](rsa_benchmark_untuk_tim.zip).
+
+## Validasi dan data benchmark
+
+Uji Fermat tetap digunakan sesuai materi proyek. Kandidat yang lolos belum terbukti prima; bilangan Carmichael dapat lolos. Tidak ada persentase kepastian umum yang dihitung dari jumlah ronde Fermat. Setiap hasil dekripsi diperiksa terhadap pesan asli.
+
+Nilai RSA dikirim sebagai string desimal melalui API agar bilangan besar tetap presisi di browser. Kolom rsa_samples_ns dan crt_samples_ns pada CSV menyimpan seluruh durasi percobaan dalam nanodetik; median dan rerata pada kolom ringkasan menggunakan milidetik. Panjang modulus aktual dapat bernilai 2b-1 atau 2b bit untuk kandidat p dan q masing-masing b bit.
+
+Jalankan `python test_web_api.py` untuk regresi API dan `node test_web_ui.js` untuk aritmetika dan transport integer pada antarmuka. Paket ZIP pada cabang ini mencakup dashboard dan peluncurnya.

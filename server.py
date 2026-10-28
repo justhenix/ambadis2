@@ -25,6 +25,15 @@ import rsa_benchmark as rsa
 import test_rsa_benchmark as test_runner
 
 
+def read_rsa_integer(data, name, default):
+    value = data.get(name, default)
+    if isinstance(value, bool) or not isinstance(value, (str, int)):
+        raise ValueError(f"{name} harus berupa bilangan bulat desimal.")
+    if isinstance(value, int) and abs(value) > 2**53 - 1:
+        raise ValueError(f"Kirim {name} sebagai string desimal agar presisi terjaga.")
+    return int(value)
+
+
 class RSAApiHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(BASE_DIR), **kwargs)
@@ -73,10 +82,10 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
 
     def handle_simulasi(self, data):
         try:
-            p = int(data.get("p", 43))
-            q = int(data.get("q", 59))
-            e = int(data.get("e", 13))
-            m = int(data.get("message", 1819))
+            p = read_rsa_integer(data, "p", 43)
+            q = read_rsa_integer(data, "q", 59)
+            e = read_rsa_integer(data, "e", 13)
+            m = read_rsa_integer(data, "message", 1819)
             fermat_rounds = int(data.get("fermat_rounds", 20))
 
             # 1. Validasi Fermat
@@ -101,6 +110,8 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
             m2 = rsa.pangkat_modular(c, kunci["dQ"], q)
             h = (kunci["qInv"] * (m1 - m2)) % p
             m_crt = m2 + h * q
+            if not m == m_rsa == m_crt:
+                raise ValueError("Verifikasi dekripsi gagal; periksa kandidat p dan q yang lolos Fermat.")
 
             response = {
                 "status": "ok",
@@ -122,14 +133,16 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
                 "h": h,
                 "valid": (m == m_rsa == m_crt)
             }
-            self.send_json_response(response)
+            self.send_json_response({key: str(value) if type(value) is int else value for key, value in response.items()})
 
         except Exception as err:
             self.send_json_response({"status": "error", "message": str(err)}, status=400)
 
     def handle_text_encrypt(self, data):
         try:
-            text = str(data.get("text", "")).strip()
+            text = data.get("text", "")
+            if not isinstance(text, str):
+                raise ValueError("Teks pesan harus berupa string.")
             if not text:
                 raise ValueError("Teks pesan tidak boleh kosong.")
 
@@ -141,9 +154,9 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
                 prime_bits = max(16, bits // 2)
                 kunci = rsa.kunci_acak(prime_bits, fermat_rounds, 65537)
             else:
-                p = int(data.get("p", 43))
-                q = int(data.get("q", 59))
-                e = int(data.get("e", 13))
+                p = read_rsa_integer(data, "p", 43)
+                q = read_rsa_integer(data, "q", 59)
+                e = read_rsa_integer(data, "e", 13)
                 if not rsa.prima_fermat(p, fermat_rounds):
                     raise ValueError(f"p ({p}) tidak lolos uji prima Fermat.")
                 if not rsa.prima_fermat(q, fermat_rounds):
@@ -167,8 +180,7 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
             for idx, ch in enumerate(chunks):
                 m_int = int.from_bytes(ch, "big")
                 if m_int >= n:
-                    # Fallback pengaman bila bit_length pas-pasan
-                    m_int = m_int % n
+                    raise ValueError("Nilai blok pesan harus lebih kecil dari modulus n.")
                 c_int = rsa.enkripsi(m_int, kunci["e"], n)
                 ciphers.append(c_int)
                 chunk_lengths.append(len(ch))
@@ -199,8 +211,11 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
                 dec_crt_bytes.extend(m_dec.to_bytes(ch_len, "big"))
             t_crt = (time.perf_counter_ns() - t0) / 1_000_000  # ms
 
-            text_decrypted = dec_crt_bytes.decode("utf-8", errors="replace")
-            is_valid = (text_decrypted == text)
+            is_valid = bytes(dec_rsa_bytes) == bytes(dec_crt_bytes) == raw_bytes
+            if not is_valid:
+                raise ValueError("Verifikasi dekripsi RSA dan RSA-CRT gagal.")
+            text_decrypted_rsa = dec_rsa_bytes.decode("utf-8")
+            text_decrypted = dec_crt_bytes.decode("utf-8")
 
             speedup = (t_rsa / t_crt) if t_crt > 0 else 1.0
 
@@ -228,6 +243,8 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
                 },
                 "text_original": text,
                 "text_decrypted": text_decrypted,
+                "text_decrypted_rsa": text_decrypted_rsa,
+                "text_decrypted_crt": text_decrypted,
                 "is_valid": is_valid,
                 "total_bytes": len(raw_bytes),
                 "block_size_bytes": block_size,
@@ -273,7 +290,7 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
             trials = int(data.get("trials", 30))
             warmup = int(data.get("warmup", 3))
             fermat_rounds = int(data.get("fermat_rounds", 20))
-            message = int(data.get("message", 1819))
+            message = read_rsa_integer(data, "message", 1819)
 
             if not prime_bits:
                 raise ValueError("Pilih minimal satu ukuran bit prima.")
@@ -286,6 +303,9 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
 
             # Simpan ke CSV
             csv_path = rsa.simpan_csv(hasil_list)
+            for result in hasil_list:
+                for name in ("p", "q", "e", "pesan", "ciphertext"):
+                    result[name] = str(result[name])
 
             self.send_json_response({
                 "status": "ok",
@@ -298,66 +318,13 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
 
     def handle_test_suite(self):
         try:
-            hasil_uji = []
-            lulus_count = 0
-            gagal_count = 0
-
-            # 1. Kasus Valid V1 - V6
-            for nomor, p, q, e, pesan, ciphertext in test_runner.VALID:
-                try:
-                    kunci = rsa.bangkitkan_kunci(p, q, e)
-                    c_calc = rsa.enkripsi(pesan, kunci["e"], kunci["n"])
-                    m_rsa = rsa.dekripsi_rsa(c_calc, kunci["d"], kunci["n"])
-                    m_crt = rsa.dekripsi_crt(c_calc, p, q, kunci["dP"], kunci["dQ"], kunci["qInv"])
-
-                    if c_calc == ciphertext and m_rsa == pesan and m_crt == pesan:
-                        status = "PASS"
-                        keterangan = f"Ciphertext = {c_calc}, Dekripsi RSA = {m_rsa}, CRT = {m_crt} persis cocok."
-                        lulus_count += 1
-                    else:
-                        status = "FAIL"
-                        keterangan = f"Keluaran salah: C={c_calc} (diharapkan {ciphertext}), M={m_rsa}/{m_crt}"
-                        gagal_count += 1
-                except Exception as ex:
-                    status = "FAIL"
-                    keterangan = f"Eksepsi: {ex}"
-                    gagal_count += 1
-
-                hasil_uji.append({
-                    "id": nomor,
-                    "tipe": "Kasus Valid",
-                    "input": f"p={p}, q={q}, e={e}, M={pesan}",
-                    "ekspektasi": f"C={ciphertext}, M={pesan}",
-                    "status": status,
-                    "keterangan": keterangan
-                })
-
-            # 2. Kasus Tidak Valid I1 - I10
-            for nomor, argumen, pesan_kesalahan in test_runner.TIDAK_VALID:
-                # Format penolakan terverifikasi
-                status = "PASS"
-                keterangan = f"Parameter input terdeteksi tidak valid dan ditolak: '{pesan_kesalahan}'"
-                lulus_count += 1
-
-                hasil_uji.append({
-                    "id": nomor,
-                    "tipe": "Kasus Tidak Valid",
-                    "input": " ".join(argumen),
-                    "ekspektasi": f"Ditolak: {pesan_kesalahan}",
-                    "status": status,
-                    "keterangan": keterangan
-                })
-
+            cases = test_runner.jalankan_suite()
+            passed = sum(case["status"] == "PASS" for case in cases)
             self.send_json_response({
                 "status": "ok",
-                "summary": {
-                    "total": len(hasil_uji),
-                    "pass": lulus_count,
-                    "fail": gagal_count
-                },
-                "cases": hasil_uji
+                "summary": {"total": len(cases), "pass": passed, "fail": len(cases) - passed},
+                "cases": cases,
             })
-
         except Exception as err:
             self.send_json_response({"status": "error", "message": str(err)}, status=500)
 

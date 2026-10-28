@@ -182,6 +182,8 @@ def benchmark(kunci, pesan, iterasi, pemanasan, jumlah_uji):
         "crt_rerata_ms": statistics.mean(waktu["RSA-CRT"]) / 1_000_000,
         "crt_median_ms": crt_median / 1_000_000,
         "speedup": rsa_median / crt_median,
+        "rsa_samples_ns": waktu["RSA"],
+        "crt_samples_ns": waktu["RSA-CRT"],
         "status": "LULUS",
     }
 

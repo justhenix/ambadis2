@@ -173,7 +173,7 @@
           </div>
           <div class="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-ocean">
             <button title="Prima sebelumnya" class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepPrime('param-p', -1)" type="button">−</button>
-            <input class="w-full border-0 text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-0" id="param-p" type="number" value="43" oninput="checkInputsLive()">
+            <input class="w-full border-0 text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-0" id="param-p" type="text" inputmode="numeric" value="43" oninput="checkInputsLive()">
             <button title="Prima berikutnya" class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepPrime('param-p', 1)" type="button">+</button>
           </div>
         </div>
@@ -186,7 +186,7 @@
           </div>
           <div class="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-ocean">
             <button title="Prima sebelumnya" class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepPrime('param-q', -1)" type="button">−</button>
-            <input class="w-full border-0 text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-0" id="param-q" type="number" value="59" oninput="checkInputsLive()">
+            <input class="w-full border-0 text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-0" id="param-q" type="text" inputmode="numeric" value="59" oninput="checkInputsLive()">
             <button title="Prima berikutnya" class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepPrime('param-q', 1)" type="button">+</button>
           </div>
         </div>
@@ -199,7 +199,7 @@
           </div>
           <div class="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-ocean">
             <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepE(-2)" type="button">−</button>
-            <input class="w-full border-0 text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-0" id="param-e" type="number" value="13" oninput="checkInputsLive()">
+            <input class="w-full border-0 text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-0" id="param-e" type="text" inputmode="numeric" value="13" oninput="checkInputsLive()">
             <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepE(2)" type="button">+</button>
           </div>
         </div>
@@ -212,7 +212,7 @@
           </div>
           <div class="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-ocean">
             <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepVal('param-m', -10); debouncedRunSimulasi(200);" type="button">−</button>
-            <input class="w-full border-0 text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-0" id="param-m" type="number" value="1819" oninput="checkInputsLive()">
+            <input class="w-full border-0 text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-0" id="param-m" type="text" inputmode="numeric" value="1819" oninput="checkInputsLive()">
             <button class="w-9 h-9 flex items-center justify-center text-slate-500 hover:bg-slate-100 text-base font-bold transition-colors cursor-pointer" onclick="stepVal('param-m', 10); debouncedRunSimulasi(200);" type="button">+</button>
           </div>
         </div>
@@ -223,23 +223,13 @@
         <div class="flex items-center justify-between">
           <div class="space-y-0.5">
             <span class="text-xs font-bold text-brand-deep">Jumlah Pengujian Fermat untuk Validasi Prima:</span>
-            <p class="text-[11px] text-slate-400">Pemeriksaan keaslian prima probabilistik sebelum pembentukan kunci.</p>
+            <p class="text-[11px] text-slate-400">Pemeriksaan kandidat prima dengan uji Fermat sebelum pembentukan kunci.</p>
           </div>
           <span class="px-2.5 py-0.5 rounded-md font-mono text-xs font-bold bg-brand-deep text-white shadow-sm" id="fermat-value-badge">20 Putaran</span>
         </div>
         <input class="w-full cursor-pointer" id="fermat-slider" max="30" min="1" oninput="updateFermatSlider(this.value)" type="range" value="20">
         
-        <!-- Live Probability & Error Metric -->
-        <div class="flex flex-wrap items-center justify-between pt-1 border-t border-slate-200/70 text-[11px] text-slate-500 font-mono">
-          <div class="flex items-center gap-1.5">
-            <span class="font-sans font-bold text-brand-deep">Tingkat Kepastian:</span>
-            <span id="fermat-prob" class="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">≥ 99.9999%</span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <span class="font-sans font-bold text-brand-deep">Peluang Salah (False Positive):</span>
-            <span id="fermat-error-rate" class="text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">≤ 1 / 1.048.576</span>
-          </div>
-        </div>
+        <p class="text-[11px] text-slate-500">Lolos Fermat belum membuktikan keprimaan; bilangan Carmichael dapat lolos.</p>
       </div>
 
       <!-- Error Message Container (Hidden by default) -->
@@ -474,7 +464,7 @@
         <!-- Message Input -->
         <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
           <label class="text-xs font-bold text-brand-deep" for="bench-message">Pesan Uji M:</label>
-          <input class="w-full bg-white border border-slate-200 rounded-lg text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-2 focus:ring-brand-ocean" id="bench-message" type="number" value="1819">
+          <input class="w-full bg-white border border-slate-200 rounded-lg text-center font-mono font-semibold text-brand-deep text-sm p-1.5 focus:ring-2 focus:ring-brand-ocean" id="bench-message" type="text" inputmode="numeric" value="1819">
         </div>
       </div>
 
@@ -585,7 +575,7 @@
           Verifikasi Otomatis Kasus Uji (Test Suite)
         </h2>
         <p class="text-xs md:text-sm text-slate-500 mt-1">
-          Skrip ini memverifikasi seluruh 16 kasus uji resmi: 6 kasus valid (V1–V6) dan 10 kasus tidak valid (I1–I10) untuk memastikan seluruh kalkulasi dan penanganan galat (<em class="italic">error handling</em>) berjalan sesuai spesifikasi.
+          Skrip ini menjalankan 16 kasus uji CLI: 6 kasus valid (V1–V6) dan 10 kasus tidak valid (I1–I10) untuk memastikan seluruh kalkulasi dan penanganan galat (<em class="italic">error handling</em>) berjalan sesuai spesifikasi.
         </p>
       </div>
 
@@ -604,22 +594,22 @@
       <!-- Test Summary Card -->
       <div id="test-summary-box" class="hidden p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
         <div class="flex items-center space-x-3">
-          <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">
+          <div id="test-summary-icon" class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
           </div>
           <div>
-            <h4 class="text-sm font-bold text-emerald-950">Seluruh Kasus Uji Berhasil Terverifikasi</h4>
+            <h4 id="test-summary-title" class="text-sm font-bold text-emerald-950">Hasil Pengujian</h4>
             <p id="test-summary-counts" class="text-xs text-emerald-800">16/16 Kasus LULUS (PASS), 0 Gagal (FAIL)</p>
           </div>
         </div>
-        <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-600 text-white">ALL PASS</span>
+        <span id="test-summary-badge" class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-600 text-white"></span>
       </div>
 
       <!-- Test Cases Table -->
       <div id="test-table-container" class="hidden bg-white rounded-2xl border border-brand-border shadow-subtle overflow-hidden">
         <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
           <h4 class="font-bold text-brand-deep text-xs uppercase tracking-wider">Rincian Hasil Verifikasi Kasus Uji</h4>
-          <span class="text-xs text-slate-500 font-medium">6 Kasus Valid &bull; 10 Kasus Galat Terisolasi</span>
+          <span class="text-xs text-slate-500 font-medium">6 Kasus CLI Valid &bull; 10 Kasus CLI Tidak Valid</span>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-600">
@@ -770,7 +760,7 @@
             <span class="text-xs font-bold text-brand-deep uppercase tracking-wider">Teks Asli (Plaintext):</span>
             <span class="text-[11px] font-mono text-slate-400" id="res-orig-len">0 karakter</span>
           </div>
-          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 font-sans text-sm text-slate-800 break-words leading-relaxed max-h-40 overflow-y-auto" id="res-orig-text">
+          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 font-sans text-sm text-slate-800 break-words leading-relaxed max-h-40 overflow-y-auto" style="white-space: pre-wrap" id="res-orig-text">
             -
           </div>
         </div>
@@ -781,7 +771,7 @@
             <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider">Teks Hasil Dekripsi (Decrypted):</span>
             <span class="text-[11px] font-mono text-emerald-700 font-semibold" id="res-dec-len">Cocok Sempurna</span>
           </div>
-          <div class="bg-white p-3.5 rounded-xl border border-emerald-200 font-sans text-sm text-emerald-950 break-words leading-relaxed max-h-40 overflow-y-auto" id="res-dec-text">
+          <div class="bg-white p-3.5 rounded-xl border border-emerald-200 font-sans text-sm text-emerald-950 break-words leading-relaxed max-h-40 overflow-y-auto" style="white-space: pre-wrap" id="res-dec-text">
             -
           </div>
         </div>
@@ -943,211 +933,123 @@
   }
 
   // Fast BigInt modular power for large primality checking
-  function powerMod(base, exp, mod) {
-    let res = 1n;
-    let b = BigInt(base) % BigInt(mod);
-    let e = BigInt(exp);
-    const m = BigInt(mod);
-    while (e > 0n) {
-      if (e % 2n === 1n) res = (res * b) % m;
-      b = (b * b) % m;
-      e /= 2n;
-    }
-    return res;
+  function readInteger(id) {
+    const value = document.getElementById(id)?.value.trim() ?? '';
+    return /^[+-]?\d+$/.test(value) ? BigInt(value) : null;
   }
 
-  // Rock-solid primality tester: NEVER freezes on NaN or large numbers
-  function isPrime(num) {
-    if (!Number.isFinite(num) || isNaN(num) || num <= 1) return false;
-    if (num <= 3) return true;
-    if (num % 2 === 0 || num % 3 === 0) return false;
-    if (num < 100000) {
-      for (let i = 5; i * i <= num; i += 6) {
-        if (num % i === 0 || num % (i + 2) === 0) return false;
+  function powerMod(base, exp, mod) {
+    let result = 1n;
+    let power = base % mod;
+    while (exp > 0n) {
+      if (exp % 2n === 1n) result = result * power % mod;
+      power = power * power % mod;
+      exp /= 2n;
+    }
+    return result;
+  }
+
+  function isPrimeCandidate(num) {
+    if (num === null || num < 2n) return false;
+    if (num <= 3n) return true;
+    if (num % 2n === 0n || num % 3n === 0n) return false;
+    if (num < 100000n) {
+      for (let i = 5n; i * i <= num; i += 6n) {
+        if (num % i === 0n || num % (i + 2n) === 0n) return false;
       }
       return true;
     }
-    try {
-      const nBig = BigInt(num);
-      const bases = [2n, 3n, 5n, 7n, 11n, 13n];
-      for (const a of bases) {
-        if (nBig % a === 0n) return nBig === a;
-        if (powerMod(a, nBig - 1n, nBig) !== 1n) return false;
-      }
-      return true;
-    } catch (e) {
-      return false;
+    for (const a of [2n, 3n, 5n, 7n, 11n, 13n]) {
+      if (num % a === 0n || powerMod(a, num - 1n, num) !== 1n) return false;
     }
+    return true;
   }
 
   function nextPrime(num) {
-    if (!Number.isFinite(num) || isNaN(num) || num < 2) return 2;
-    let candidate = Math.max(2, Math.trunc(num) + 1);
-    if (candidate > 2 && candidate % 2 === 0) candidate++;
-    let steps = 0;
-    while (!isPrime(candidate) && steps < 5000) {
-      candidate += 2;
-      steps++;
+    let candidate = num < 3n ? 3n : num + 1n;
+    if (candidate % 2n === 0n) candidate++;
+    for (let steps = 0; steps < 5000; steps++, candidate += 2n) {
+      if (isPrimeCandidate(candidate)) return candidate;
     }
-    return candidate;
+    return null;
   }
 
   function prevPrime(num) {
-    if (!Number.isFinite(num) || isNaN(num) || num <= 3) return 2;
-    let candidate = Math.trunc(num) - 1;
-    if (candidate > 2 && candidate % 2 === 0) candidate--;
-    let steps = 0;
-    while (candidate > 2 && !isPrime(candidate) && steps < 5000) {
-      candidate -= 2;
-      steps++;
+    let candidate = num - 1n;
+    if (candidate % 2n === 0n) candidate--;
+    for (let steps = 0; candidate >= 3n && steps < 5000; steps++, candidate -= 2n) {
+      if (isPrimeCandidate(candidate)) return candidate;
     }
-    return candidate >= 2 ? candidate : 2;
+    return num <= 3n ? 3n : null;
   }
 
-  // Stepper specifically for Primes (p and q)
   function stepPrime(elementId, delta) {
     const input = document.getElementById(elementId);
-    if (input) {
-      const currentVal = parseInt(input.value, 10) || 3;
-      const nextVal = delta > 0 ? nextPrime(currentVal) : prevPrime(currentVal);
-      input.value = nextVal;
+    const current = readInteger(elementId) ?? 3n;
+    const next = delta > 0 ? nextPrime(current) : prevPrime(current);
+    if (input && next !== null) {
+      input.value = next.toString();
       checkInputsLive();
       debouncedRunSimulasi(200);
     }
   }
 
-  // Stepper for e (keeps odd numbers)
   function stepE(delta) {
     const input = document.getElementById('param-e');
-    if (input) {
-      let currentVal = parseInt(input.value, 10) || 3;
-      currentVal += delta;
-      if (currentVal < 3) currentVal = 3;
-      if (currentVal % 2 === 0) currentVal += 1;
-      input.value = currentVal;
-      checkInputsLive();
-      debouncedRunSimulasi(200);
-    }
+    let value = (readInteger('param-e') ?? 3n) + BigInt(delta);
+    if (value < 3n) value = 3n;
+    if (value % 2n === 0n) value++;
+    input.value = value.toString();
+    checkInputsLive();
+    debouncedRunSimulasi(200);
   }
 
-  // Helper for Stepper inputs (general)
   function stepVal(elementId, delta) {
-    const input = document.getElementById(elementId);
-    if (input) {
-      const currentVal = parseInt(input.value, 10) || 0;
-      const nextVal = Math.max(0, currentVal + delta);
-      input.value = nextVal;
-      checkInputsLive();
-    }
+    const value = (readInteger(elementId) ?? 0n) + BigInt(delta);
+    document.getElementById(elementId).value = (value < 0n ? 0n : value).toString();
+    checkInputsLive();
   }
 
-  // Safe Euclidean GCD: Guarded against NaN and non-finite numbers to prevent infinite loops
   function gcd(a, b) {
-    if (!Number.isFinite(a) || !Number.isFinite(b) || isNaN(a) || isNaN(b)) return 0;
-    let x = Math.trunc(Math.abs(a));
-    let y = Math.trunc(Math.abs(b));
-    while (y !== 0 && !isNaN(y)) {
-      const t = y;
-      y = x % y;
-      x = t;
-    }
-    return x;
+    if (a === null || b === null) return null;
+    while (b !== 0n) [a, b] = [b, a % b];
+    return a < 0n ? -a : a;
   }
 
-  // Live input badge verification (completely safe against partial keystrokes & NaN)
   function checkInputsLive() {
-    updateTextKeySummaryUI();
-
-    const pStr = document.getElementById('param-p')?.value.trim();
-    const qStr = document.getElementById('param-q')?.value.trim();
-    const eStr = document.getElementById('param-e')?.value.trim();
-    const mStr = document.getElementById('param-m')?.value.trim();
-
-    const badgeP = document.getElementById('badge-p');
-    const badgeQ = document.getElementById('badge-q');
+    if (typeof updateTextKeySummaryUI === 'function') updateTextKeySummaryUI();
+    const p = readInteger('param-p');
+    const q = readInteger('param-q');
+    const e = readInteger('param-e');
+    const m = readInteger('param-m');
+    for (const [name, value] of [['p', p], ['q', q]]) {
+      const badge = document.getElementById(`badge-${name}`);
+      const candidate = isPrimeCandidate(value);
+      badge.innerText = value === null ? 'Isi angka' : candidate ? (value < 100000n ? 'Prima' : 'Lolos Fermat') : 'Bukan Prima';
+      badge.className = `text-[10px] font-mono px-1.5 py-0.5 rounded font-semibold ${candidate ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'}`;
+    }
     const badgeE = document.getElementById('badge-e');
     const badgeM = document.getElementById('badge-m');
-
-    if (!pStr || isNaN(parseInt(pStr, 10))) {
-      if (badgeP) {
-        badgeP.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold";
-        badgeP.innerText = "Isi angka";
-      }
+    if (isPrimeCandidate(p) && isPrimeCandidate(q) && p > 2n && q > 2n && p !== q) {
+      const phi = (p - 1n) * (q - 1n);
+      const validE = e !== null && e > 1n && e < phi && gcd(e, phi) === 1n;
+      const validM = m !== null && m >= 0n && m < p * q;
+      badgeE.innerText = validE ? 'gcd(e,φ)=1' : 'e Tidak Valid';
+      badgeM.innerText = validM ? '0 ≤ M < n' : 'M Tidak Valid';
+      badgeE.className = `text-[10px] font-mono px-1.5 py-0.5 rounded font-semibold ${validE ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'}`;
+      badgeM.className = `text-[10px] font-mono px-1.5 py-0.5 rounded font-semibold ${validM ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-700'}`;
     } else {
-      const p = parseInt(pStr, 10);
-      const pPrime = isPrime(p);
-      if (badgeP) {
-        if (pPrime) {
-          badgeP.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold";
-          badgeP.innerText = "Prima";
-        } else {
-          badgeP.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-semibold";
-          badgeP.innerText = "Bukan Prima";
-        }
-      }
-    }
-
-    if (!qStr || isNaN(parseInt(qStr, 10))) {
-      if (badgeQ) {
-        badgeQ.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold";
-        badgeQ.innerText = "Isi angka";
-      }
-    } else {
-      const q = parseInt(qStr, 10);
-      const qPrime = isPrime(q);
-      if (badgeQ) {
-        if (qPrime) {
-          badgeQ.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold";
-          badgeQ.innerText = "Prima";
-        } else {
-          badgeQ.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-semibold";
-          badgeQ.innerText = "Bukan Prima";
-        }
-      }
-    }
-
-    const p = parseInt(pStr, 10);
-    const q = parseInt(qStr, 10);
-    const e = parseInt(eStr, 10);
-    const m = parseInt(mStr, 10);
-
-    const pPrime = isPrime(p);
-    const qPrime = isPrime(q);
-
-    if (pPrime && qPrime && p !== q) {
-      const n = p * q;
-      const phi = (p - 1) * (q - 1);
-
-      if (badgeE) {
-        if (!isNaN(e) && e > 1 && e < phi && gcd(e, phi) === 1) {
-          badgeE.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold";
-          badgeE.innerText = "gcd(e,φ)=1";
-        } else {
-          badgeE.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-semibold";
-          badgeE.innerText = (!isNaN(e) && gcd(e, phi) !== 1) ? "gcd(e,φ) ≠ 1" : "e Tidak Valid";
-        }
-      }
-
-      if (badgeM) {
-        if (!isNaN(m) && m >= 0 && m < n) {
-          badgeM.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-semibold whitespace-nowrap";
-          badgeM.innerText = "0 ≤ M < n";
-        } else {
-          badgeM.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-semibold whitespace-nowrap";
-          badgeM.innerText = isNaN(m) ? "Isi M" : "M ≥ n (Galat)";
-        }
-      }
-    } else {
-      if (badgeE) {
-        badgeE.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold whitespace-nowrap";
-        badgeE.innerText = "Perlu p, q prima";
-      }
-      if (badgeM) {
-        badgeM.className = "text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold whitespace-nowrap";
-        badgeM.innerText = "0 ≤ M < n";
-      }
+      badgeE.innerText = 'Periksa p dan q';
+      badgeM.innerText = '0 ≤ M < n';
+      badgeE.className = badgeM.className = 'text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold';
     }
   }
+
+  function speedupLabel(ratio) {
+    const label = ratio > 1 ? 'CRT lebih cepat' : ratio < 1 ? 'CRT lebih lambat' : 'Waktu setara';
+    return `${ratio.toFixed(2)}x (${label})`;
+  }
+
 
   // Update Bit Pills active/inactive styles on Tab 2
   function updateBitPillStyles() {
@@ -1166,30 +1068,7 @@
 
   // Update Fermat Slider visual metrics
   function updateFermatSlider(val) {
-    const k = parseInt(val, 10);
-    document.getElementById('fermat-value-badge').innerText = `${k} Putaran`;
-
-    const prob = (1 - Math.pow(0.5, k)) * 100;
-    const denominator = Math.pow(2, k);
-
-    let probText = "";
-    if (k >= 20) {
-      probText = "≥ 99.9999% (Sangat Mutlak)";
-    } else {
-      probText = `~ ${prob.toFixed(2)}%`;
-    }
-
-    let errText = "";
-    if (k >= 30) {
-      errText = "≤ 1 / 1.000.000.000";
-    } else {
-      errText = `≤ 1 / ${denominator.toLocaleString('id-ID')}`;
-    }
-
-    const probElem = document.getElementById('fermat-prob');
-    const errElem = document.getElementById('fermat-error-rate');
-    if (probElem) probElem.innerText = probText;
-    if (errElem) errElem.innerText = errText;
+    document.getElementById('fermat-value-badge').innerText = `${val} Putaran`;
   }
 
   // Tab Switcher (Support 4 tabs)
@@ -1234,10 +1113,10 @@
   // TAB 1: RUN SIMULASI VIA API
   // ============================================================
   async function runSimulasi() {
-    const p = parseInt(document.getElementById('param-p').value, 10);
-    const q = parseInt(document.getElementById('param-q').value, 10);
-    const e = parseInt(document.getElementById('param-e').value, 10);
-    const m = parseInt(document.getElementById('param-m').value, 10);
+    const p = document.getElementById('param-p').value.trim();
+    const q = document.getElementById('param-q').value.trim();
+    const e = document.getElementById('param-e').value.trim();
+    const m = document.getElementById('param-m').value.trim();
     const fermat_rounds = parseInt(document.getElementById('fermat-slider').value, 10);
 
     const errBox = document.getElementById('simulasi-error');
@@ -1312,7 +1191,7 @@
     const trials = parseInt(document.getElementById('trials-slider').value, 10);
     const warmup = parseInt(document.getElementById('warmup-slider').value, 10);
     const fermat_rounds = parseInt(document.getElementById('bench-fermat-slider').value, 10);
-    const message = parseInt(document.getElementById('bench-message').value, 10);
+    const message = document.getElementById('bench-message').value.trim();
 
     const btn = document.getElementById('btn-run-benchmark');
     const spinner = document.getElementById('btn-bench-spinner');
@@ -1359,8 +1238,7 @@
     const badge = document.getElementById('crt-speedup-badge');
     if (badge) {
       if (latestMeasuredSpeedup !== null && !isNaN(latestMeasuredSpeedup)) {
-        const formatted = latestMeasuredSpeedup.toFixed(1).replace('.', ',');
-        badge.innerText = `Terukur: ${formatted}x lebih cepat`;
+        badge.innerText = `Terukur: ${speedupLabel(latestMeasuredSpeedup)}`;
         badge.className = "text-[11px] font-mono font-bold bg-emerald-100 text-emerald-900 px-2.5 py-0.5 rounded-full border border-emerald-300";
       } else {
         badge.innerText = "Teoretis sekitar 4x (bukan hasil ukur)";
@@ -1389,7 +1267,7 @@
           <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">${item.bit_kunci} Bit Key</span>
           <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-brand-sky/20 text-brand-deep font-bold">p=${item.bit_p}b</span>
         </div>
-        <div class="text-xl font-bold text-brand-deep">${item.speedup.toFixed(2)}x Lebih Cepat</div>
+        <div class="text-xl font-bold text-brand-deep">${speedupLabel(item.speedup)}</div>
         <div class="text-[11px] text-slate-500 flex justify-between pt-1 border-t border-slate-100 font-mono">
           <span>RSA: ${item.rsa_median_ms.toFixed(3)} ms</span>
           <span>CRT: ${item.crt_median_ms.toFixed(3)} ms</span>
@@ -1498,7 +1376,7 @@
           legend: { position: 'top' },
           tooltip: {
             callbacks: {
-              label: (context) => ` Rasio CRT: ${context.raw.toFixed(2)}x lebih cepat`
+              label: (context) => ` Rasio CRT: ${speedupLabel(context.raw)}`
             }
           }
         },
@@ -1537,7 +1415,16 @@
         throw new Error(data.message || 'Gagal menjalankan kasus uji.');
       }
 
-      summaryBox.classList.remove('hidden');
+      const allPass = data.summary.fail === 0;
+      summaryBox.className = `p-4 rounded-xl border flex items-center justify-between ${allPass ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`;
+      const summaryTitle = document.getElementById('test-summary-title');
+      summaryTitle.innerText = allPass ? 'Seluruh Kasus Uji Berhasil Terverifikasi' : 'Ada Kasus Uji Gagal';
+      summaryTitle.className = `text-sm font-bold ${allPass ? 'text-emerald-950' : 'text-red-950'}`;
+      const summaryBadge = document.getElementById('test-summary-badge');
+      summaryBadge.innerText = allPass ? 'ALL PASS' : 'FAIL';
+      summaryBadge.className = `px-3 py-1 rounded-full text-xs font-mono font-bold text-white ${allPass ? 'bg-emerald-600' : 'bg-red-600'}`;
+      document.getElementById('test-summary-icon').classList.toggle('hidden', !allPass);
+      countsText.className = `text-xs ${allPass ? 'text-emerald-800' : 'text-red-800'}`;
       countsText.innerText = `${data.summary.pass}/${data.summary.total} Kasus LULUS (PASS), ${data.summary.fail} Gagal (FAIL)`;
 
       tbody.innerHTML = '';
@@ -1574,12 +1461,12 @@
   // TAB 4: ENKRIPSI PESAN TEKS (STRING)
   // ============================================================
   function updateTextKeySummaryUI() {
-    const p = parseInt(document.getElementById('param-p')?.value, 10) || 43;
-    const q = parseInt(document.getElementById('param-q')?.value, 10) || 59;
-    const e = parseInt(document.getElementById('param-e')?.value, 10) || 13;
-    const n = p * q;
-    const bits = n > 0 ? Math.floor(Math.log2(n)) + 1 : 0;
-    const kBytes = Math.max(1, Math.floor((bits - 1) / 8));
+    const p = readInteger('param-p');
+    const q = readInteger('param-q');
+    const e = readInteger('param-e');
+    const n = p !== null && q !== null ? p * q : 0n;
+    const bits = n > 0n ? n.toString(2).length : 0;
+    const kBytes = Math.max(0, Math.floor((bits - 1) / 8));
 
     const pBadge = document.getElementById('text-key-p-badge');
     const qBadge = document.getElementById('text-key-q-badge');
@@ -1603,13 +1490,13 @@
     const encoder = new TextEncoder();
     const bytes = encoder.encode(text).length;
 
-    const p = parseInt(document.getElementById('param-p')?.value, 10) || 43;
-    const q = parseInt(document.getElementById('param-q')?.value, 10) || 59;
-    const n = p * q;
-    const bits = n > 0 ? Math.floor(Math.log2(n)) + 1 : 0;
-    const kBytes = Math.max(1, Math.floor((bits - 1) / 8));
+    const p = readInteger('param-p');
+    const q = readInteger('param-q');
+    const n = p !== null && q !== null ? p * q : 0n;
+    const bits = n > 0n ? n.toString(2).length : 0;
+    const kBytes = Math.max(0, Math.floor((bits - 1) / 8));
 
-    const blocks = Math.ceil(bytes / kBytes) || 0;
+    const blocks = kBytes > 0 ? Math.ceil(bytes / kBytes) : 0;
     const counterElem = document.getElementById('text-char-counter');
     if (counterElem) {
       counterElem.innerText = `${text.length} karakter • ${bytes} byte UTF-8 • ${blocks} blok (${kBytes} B/blok)`;
@@ -1627,7 +1514,7 @@
 
   async function runTextEncrypt() {
     const textInput = document.getElementById('text-input-msg');
-    const text = textInput ? textInput.value.trim() : "";
+    const text = textInput ? textInput.value : "";
     const errBox = document.getElementById('text-error-box');
     const errMsg = document.getElementById('text-error-msg');
     const spinner = document.getElementById('btn-text-spinner');
@@ -1645,16 +1532,16 @@
     spinner.classList.remove('hidden');
     btnLabel.innerText = "Mengenkripsi & Mendekripsi...";
 
-    const p = parseInt(document.getElementById('param-p')?.value, 10) || 43;
-    const q = parseInt(document.getElementById('param-q')?.value, 10) || 59;
-    const e = parseInt(document.getElementById('param-e')?.value, 10) || 13;
+    const p = readInteger('param-p');
+    const q = readInteger('param-q');
+    const e = readInteger('param-e');
 
     const payload = {
       text: text,
       key_mode: 'simulasi',
-      p: p,
-      q: q,
-      e: e
+      p: p === null ? '' : p.toString(),
+      q: q === null ? '' : q.toString(),
+      e: e === null ? '' : e.toString()
     };
 
     try {
@@ -1672,7 +1559,7 @@
       // Update UI dengan hasil
       document.getElementById('text-rsa-time').innerText = `${data.rsa_time_ms.toFixed(4)} ms`;
       document.getElementById('text-crt-time').innerText = `${data.crt_time_ms.toFixed(4)} ms`;
-      document.getElementById('text-speedup-badge').innerText = `${data.speedup.toFixed(2)}x Lebih Cepat`;
+      document.getElementById('text-speedup-badge').innerText = `${speedupLabel(data.speedup)}`;
 
       // Text comparison
       document.getElementById('res-orig-text').innerText = data.text_original;
@@ -1744,7 +1631,7 @@
     navigator.clipboard.writeText(text).then(() => {
       const btn = document.getElementById(btnId);
       const origHtml = btn.innerHTML;
-      btn.innerHTML = `<span class="text-emerald-600 font-bold">✓ Tersalin!</span>`;
+      btn.innerHTML = `<span class="text-emerald-600 font-bold">Tersalin!</span>`;
       setTimeout(() => { btn.innerHTML = origHtml; }, 2000);
     }).catch(() => {
       alert("Gagal menyalin otomatis.");

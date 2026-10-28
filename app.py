@@ -99,18 +99,19 @@ with tab_calc:
 
     col_in1, col_in2, col_in3, col_in4 = st.columns(4)
     with col_in1:
-        p_val = st.number_input("Prima p:", value=default_p, step=1, min_value=3)
+        p_val = st.text_input("Prima p:", value=str(default_p))
     with col_in2:
-        q_val = st.number_input("Prima q:", value=default_q, step=1, min_value=3)
+        q_val = st.text_input("Prima q:", value=str(default_q))
     with col_in3:
-        e_val = st.number_input("Eksponen Publik e:", value=default_e, step=1, min_value=3)
+        e_val = st.text_input("Eksponen Publik e:", value=str(default_e))
     with col_in4:
-        m_val = st.number_input("Pesan M (0 <= M < n):", value=default_m, step=1, min_value=0)
+        m_val = st.text_input("Pesan M (0 <= M < n):", value=str(default_m))
 
     fermat_check_rounds = st.slider("Jumlah Pengujian Fermat untuk Validasi Prima:", 1, 50, 20)
 
     if st.button("Hitung & Jalankan Simulasi", type="primary", use_container_width=True):
         try:
+            p_val, q_val, e_val, m_val = map(int, (p_val, q_val, e_val, m_val))
             # 1. Validasi Fermat
             if not rsa.prima_fermat(p_val, fermat_check_rounds):
                 st.error(f"[GAGAL] Parameter p = {p_val} tidak lolos pengujian prima Fermat.")
@@ -132,7 +133,9 @@ with tab_calc:
             m_rsa = rsa.dekripsi_rsa(c, kunci["d"], kunci["n"])
             m_crt = rsa.dekripsi_crt(c, p_val, q_val, kunci["dP"], kunci["dQ"], kunci["qInv"])
 
-            st.success("Perhitungan berhasil! Semua parameter valid dan lolos verifikasi.")
+            if not m_val == m_rsa == m_crt:
+                raise ValueError("Verifikasi dekripsi gagal; periksa kandidat yang lolos Fermat.")
+            st.success("Perhitungan berhasil; kedua hasil dekripsi cocok dengan pesan asli.")
 
             col_res1, col_res2, col_res3 = st.columns(3)
             with col_res1:
@@ -213,12 +216,18 @@ with tab_bench:
         trials_count = st.slider("Jumlah Percobaan (Trials):", min_value=5, max_value=100, value=30, step=5)
         warmup_count = st.slider("Jumlah Pemanasan (Warmup):", min_value=1, max_value=10, value=3, step=1)
     with col_b3:
-        bench_message = st.number_input("Pesan Uji M:", value=1819, step=1, min_value=1)
+        bench_message = st.text_input("Pesan Uji M:", value="1819")
         bench_fermat = st.slider("Basis Fermat Rounds:", min_value=5, max_value=30, value=20, step=5)
 
     if st.button("Mulai Benchmark", type="primary", use_container_width=True):
         if not bit_options:
             st.warning("Pilih minimal satu ukuran bit prima untuk diuji.")
+            st.stop()
+
+        try:
+            bench_message = int(bench_message)
+        except ValueError:
+            st.error("Pesan M harus berupa bilangan bulat desimal.")
             st.stop()
 
         hasil_list = []
@@ -261,7 +270,7 @@ with tab_bench:
             with cols_metric[i]:
                 st.metric(
                     label=f"Kunci {item['bit_kunci']} bit (p={item['bit_p']}b)",
-                    value=f"{item['speedup']:.2f}x Lebih Cepat",
+                    value=f"{item['speedup']:.2f}x (RSA/CRT)",
                     delta=f"RSA {item['rsa_median_ms']:.3f} ms vs CRT {item['crt_median_ms']:.3f} ms",
                     delta_color="inverse",
                 )
@@ -314,59 +323,14 @@ with tab_test:
     if st.button("Jalankan 16 Kasus Uji Otomatis", type="primary", use_container_width=True):
         st.info("Memulai eksekusi pengujian suite...")
         
-        # Eksekusi V1 - V6
-        hasil_uji = []
-        lulus_count = 0
-        gagal_count = 0
-
-        # Kasus Valid
-        for kasus in test_runner.VALID:
-            nomor, p, q, e, pesan, ciphertext = kasus
-            try:
-                kunci = rsa.bangkitkan_kunci(p, q, e)
-                c_calc = rsa.enkripsi(pesan, kunci["e"], kunci["n"])
-                m_rsa = rsa.dekripsi_rsa(c_calc, kunci["d"], kunci["n"])
-                m_crt = rsa.dekripsi_crt(c_calc, p, q, kunci["dP"], kunci["dQ"], kunci["qInv"])
-
-                if c_calc == ciphertext and m_rsa == pesan and m_crt == pesan:
-                    status = "PASS"
-                    keterangan = f"C={c_calc}, Dekripsi RSA={m_rsa}, CRT={m_crt} sesuai harapan."
-                    lulus_count += 1
-                else:
-                    status = "FAIL"
-                    keterangan = f"Output salah: C={c_calc} (harap {ciphertext}), M={m_rsa}/{m_crt}"
-                    gagal_count += 1
-            except Exception as err:
-                status = "FAIL"
-                keterangan = f"Error: {err}"
-                gagal_count += 1
-
-            hasil_uji.append({
-                "ID": nomor,
-                "Tipe": "Kasus Valid",
-                "Input": f"p={p}, q={q}, e={e}, M={pesan}",
-                "Ekspektasi": f"C={ciphertext}, M={pesan}",
-                "Status": status,
-                "Keterangan": keterangan,
-            })
-
-        # Kasus Tidak Valid
-        for nomor, argumen, pesan_kesalahan in test_runner.TIDAK_VALID:
-            # Uji penolakan
-            status = "PASS"
-            keterangan = f"Berhasil dideteksi & ditolak dengan pesan: '{pesan_kesalahan}'"
-            lulus_count += 1
-
-            hasil_uji.append({
-                "ID": nomor,
-                "Tipe": "Kasus Tidak Valid",
-                "Input": " ".join(argumen),
-                "Ekspektasi": f"Ditolak: {pesan_kesalahan}",
-                "Status": status,
-                "Keterangan": keterangan,
-            })
-
-        st.success(f"Rekapitulasi: **{lulus_count} / {len(hasil_uji)} PASS**, **{gagal_count} FAIL**")
+        cases = test_runner.jalankan_suite()
+        hasil_uji = [{"ID": case["id"], "Tipe": case["tipe"], "Input": case["input"],
+                      "Ekspektasi": case["ekspektasi"], "Status": case["status"],
+                      "Keterangan": case["keterangan"]} for case in cases]
+        lulus_count = sum(case["status"] == "PASS" for case in cases)
+        gagal_count = len(cases) - lulus_count
+        show_summary = st.success if gagal_count == 0 else st.error
+        show_summary(f"Rekapitulasi: **{lulus_count} / {len(cases)} PASS**, **{gagal_count} FAIL**")
 
         df_test = pd.DataFrame(hasil_uji)
         
