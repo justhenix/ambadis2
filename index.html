@@ -77,6 +77,28 @@
       -moz-appearance: textfield;
       appearance: textfield;
     }
+
+    .rsa-method-card { min-width: 0; }
+    .rsa-method-card .math-result-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+      align-items: start;
+      gap: .25rem .75rem;
+    }
+    .rsa-method-card .math-result-value {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      white-space: normal;
+      text-align: right;
+    }
+    .rsa-method-card .math-card-heading { flex-wrap: wrap; gap: .5rem; }
+    .rsa-method-card .math-card-footer > span { white-space: normal; }
+    .math-flow-item { min-width: 0; max-width: 100%; }
+    .math-flow-item > [id] { min-width: 0; overflow-wrap: anywhere; white-space: normal; }
+    @media (max-width: 639px) {
+      .rsa-method-card .math-result-row { grid-template-columns: minmax(0, 1fr); }
+      .rsa-method-card .math-result-value { text-align: left; }
+    }
   </style>
 </head>
 <body class="bg-brand-soft text-slate-800 font-sans min-h-screen antialiased selection:bg-brand-sky selection:text-brand-deep">
@@ -254,7 +276,7 @@
     </section>
 
     <!-- Computed Summary Preview Section -->
-    <section class="space-y-4" data-purpose="results-preview-section">
+    <section id="simulasi-results" class="space-y-4 hidden" data-purpose="results-preview-section">
       <div class="flex items-center justify-between">
         <h3 class="text-sm font-bold text-brand-deep uppercase tracking-wider">Hasil Komputasi &amp; Perbandingan Moduler</h3>
         <span class="text-xs text-slate-500 font-medium">Nilai Terhitung Otomatis</span>
@@ -263,7 +285,7 @@
       <!-- Alur Data Kriptografi (Visual Pipeline) -->
       <div class="bg-white rounded-2xl p-4 border border-brand-border shadow-subtle flex flex-col gap-2.5 text-xs">
         <div class="flex flex-wrap items-center justify-between gap-2.5">
-          <div class="flex items-center gap-1.5 shrink-0">
+          <div class="math-flow-item flex items-center gap-1.5 shrink-0">
             <span class="text-slate-400 font-bold">1. Plaintext:</span>
             <span id="flow-m" class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 font-mono font-bold whitespace-nowrap">M = 1819</span>
           </div>
@@ -271,7 +293,7 @@
             <span>Enkripsi (M<sup>e</sup> mod n)</span>
             <svg class="w-4 h-4 text-brand-ocean shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
           </div>
-          <div class="flex items-center gap-1.5 shrink-0">
+          <div class="math-flow-item flex items-center gap-1.5 shrink-0">
             <span class="text-slate-400 font-bold">2. Ciphertext:</span>
             <span id="flow-c" class="px-2.5 py-1 rounded-lg bg-brand-sky/30 text-brand-deep font-mono font-bold whitespace-nowrap">C = 2081</span>
           </div>
@@ -279,7 +301,7 @@
             <span>Dekripsi (RSA/CRT)</span>
             <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
           </div>
-          <div class="flex items-center gap-1.5 shrink-0">
+          <div class="math-flow-item flex items-center gap-1.5 shrink-0">
             <span class="text-slate-400 font-bold">3. Hasil Dekripsi:</span>
             <span id="flow-dec" class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 font-mono font-bold whitespace-nowrap">M = 1819</span>
             <span class="text-[10px] text-emerald-700 font-semibold whitespace-nowrap">(Pulih 100%)</span>
@@ -292,9 +314,9 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <!-- RSA Standar Card -->
-        <article class="bg-white rounded-2xl p-5 border border-brand-border shadow-subtle flex flex-col justify-between space-y-4">
+        <article class="rsa-method-card bg-white rounded-2xl p-5 border border-brand-border shadow-subtle flex flex-col justify-between space-y-4">
           <div class="space-y-3">
-            <div class="flex items-center justify-between">
+            <div class="math-card-heading flex items-center justify-between">
               <div class="flex items-center space-x-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0"></span>
                 <h4 class="font-bold text-brand-deep text-sm whitespace-nowrap">Metode RSA Standar</h4>
@@ -303,34 +325,34 @@
             </div>
             <!-- Mathematical breakdown list -->
             <div class="space-y-2.5 text-xs bg-brand-soft/50 p-3.5 rounded-xl border border-slate-100">
-              <div class="flex justify-between items-center">
+              <div class="math-result-row flex justify-between items-center">
                 <span class="text-slate-600 font-medium">Modulus n = p × q:</span>
-                <span id="out-n" class="font-mono font-bold text-brand-deep text-sm">2537</span>
+                <span id="out-n" class="math-result-value font-mono font-bold text-brand-deep text-sm">2537</span>
               </div>
-              <div class="flex justify-between items-center">
+              <div class="math-result-row flex justify-between items-center">
                 <span class="text-slate-600 font-medium">Totient φ(n) = (p − 1)(q − 1):</span>
-                <span id="out-phi" class="font-mono font-bold text-brand-deep text-sm">2436</span>
+                <span id="out-phi" class="math-result-value font-mono font-bold text-brand-deep text-sm">2436</span>
               </div>
-              <div class="flex justify-between items-center">
+              <div class="math-result-row flex justify-between items-center">
                 <span class="text-slate-600 font-medium">Eksponen Privat d:</span>
-                <span id="out-d" class="font-mono font-bold text-brand-deep text-sm">937</span>
+                <span id="out-d" class="math-result-value font-mono font-bold text-brand-deep text-sm">937</span>
               </div>
-              <div class="flex justify-between items-center pt-2 border-t border-slate-200">
+              <div class="math-result-row flex justify-between items-center pt-2 border-t border-slate-200">
                 <span id="label-dekripsi-rsa" class="text-slate-700 font-medium">Dekripsi: M = C<sup>d</sup> mod n</span>
-                <span id="out-m-rsa" class="font-mono text-emerald-700 font-bold text-sm">1819</span>
+                <span id="out-m-rsa" class="math-result-value font-mono text-emerald-700 font-bold text-sm">1819</span>
               </div>
             </div>
           </div>
-          <div class="pt-2 text-[11px] text-slate-400 flex items-center justify-between">
+          <div class="math-card-footer pt-2 text-[11px] text-slate-400 flex items-center justify-between">
             <span>Kompleksitas: O(k³)</span>
             <span class="text-slate-500 font-medium">Beban Operasi Standar</span>
           </div>
         </article>
 
         <!-- RSA-CRT Card -->
-        <article class="bg-white rounded-2xl p-5 border-2 border-brand-sky/60 shadow-subtle flex flex-col justify-between space-y-4 relative overflow-hidden">
+        <article class="rsa-method-card bg-white rounded-2xl p-5 border-2 border-brand-sky/60 shadow-subtle flex flex-col justify-between space-y-4 relative overflow-hidden">
           <div class="space-y-3">
-            <div class="flex items-center justify-between gap-2">
+            <div class="math-card-heading flex items-center justify-between gap-2">
               <div class="flex items-center space-x-2 shrink-0">
                 <span class="w-2.5 h-2.5 rounded-full bg-brand-deep shrink-0"></span>
                 <h4 class="font-bold text-brand-deep text-sm whitespace-nowrap">Metode RSA-CRT</h4>
@@ -339,33 +361,33 @@
             </div>
             <!-- Mathematical breakdown list -->
             <div class="space-y-2.5 text-xs bg-brand-soft/50 p-3.5 rounded-xl border border-slate-100">
-              <div class="flex justify-between items-center">
+              <div class="math-result-row flex justify-between items-center">
                 <span class="text-slate-600 font-medium">d<sub>P</sub> = d mod (p − 1):</span>
-                <span id="out-dp" class="font-mono font-bold text-brand-deep text-sm">13</span>
+                <span id="out-dp" class="math-result-value font-mono font-bold text-brand-deep text-sm">13</span>
               </div>
-              <div class="flex justify-between items-center">
+              <div class="math-result-row flex justify-between items-center">
                 <span class="text-slate-600 font-medium">d<sub>Q</sub> = d mod (q − 1):</span>
-                <span id="out-dq" class="font-mono font-bold text-brand-deep text-sm">9</span>
+                <span id="out-dq" class="math-result-value font-mono font-bold text-brand-deep text-sm">9</span>
               </div>
-              <div class="flex justify-between items-center">
+              <div class="math-result-row flex justify-between items-center">
                 <span class="text-slate-600 font-medium">q<sub>inv</sub> = q<sup>−1</sup> mod p:</span>
-                <span id="out-qinv" class="font-mono font-bold text-brand-deep text-sm">35</span>
+                <span id="out-qinv" class="math-result-value font-mono font-bold text-brand-deep text-sm">35</span>
               </div>
-              <div class="flex justify-between items-center">
+              <div class="math-result-row flex justify-between items-center">
                 <span class="text-slate-600 font-medium">m₁ = C<sup>d<sub>P</sub></sup> mod p, &nbsp;m₂ = C<sup>d<sub>Q</sub></sup> mod q:</span>
-                <span id="out-m1m2" class="font-mono font-bold text-brand-ocean text-xs whitespace-nowrap">m₁ = 13, m₂ = 49</span>
+                <span id="out-m1m2" class="math-result-value font-mono font-bold text-brand-ocean text-xs whitespace-nowrap">m₁ = 13, m₂ = 49</span>
               </div>
-              <div class="flex justify-between items-center pt-1.5 border-t border-slate-200">
+              <div class="math-result-row flex justify-between items-center pt-1.5 border-t border-slate-200">
                 <span class="text-slate-600 font-medium">h = q<sub>inv</sub> × (m₁ − m₂) mod p:</span>
-                <span id="out-h" class="font-mono font-bold text-brand-deep text-sm whitespace-nowrap">30</span>
+                <span id="out-h" class="math-result-value font-mono font-bold text-brand-deep text-sm whitespace-nowrap">30</span>
               </div>
-              <div class="flex justify-between items-center pt-1.5 border-t border-slate-200">
+              <div class="math-result-row flex justify-between items-center pt-1.5 border-t border-slate-200">
                 <span class="text-slate-700 font-medium whitespace-nowrap">M = m₂ + h × q:</span>
-                <span id="out-m-crt" class="font-mono text-emerald-700 font-bold text-sm whitespace-nowrap">49 + 30 × 59 = 1819</span>
+                <span id="out-m-crt" class="math-result-value font-mono text-emerald-700 font-bold text-sm whitespace-nowrap">49 + 30 × 59 = 1819</span>
               </div>
             </div>
           </div>
-          <div class="pt-2 text-[10px] sm:text-[11px] text-brand-deep font-semibold flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+          <div class="math-card-footer pt-2 text-[10px] sm:text-[11px] text-brand-deep font-semibold flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <span class="whitespace-nowrap">Kompleksitas (Teoretis): 2 × O((k/2)³) = 0,25 × Standar</span>
             <span class="text-emerald-600 flex items-center gap-1 font-bold whitespace-nowrap">
               <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -1128,18 +1150,22 @@
   // ============================================================
   // TAB 1: RUN SIMULASI VIA API
   // ============================================================
+  let simulationRequestId = 0;
   async function runSimulasi() {
+    const requestId = ++simulationRequestId;
     const p = document.getElementById('param-p').value.trim();
     const q = document.getElementById('param-q').value.trim();
     const e = document.getElementById('param-e').value.trim();
     const m = document.getElementById('param-m').value.trim();
     const mr_rounds = parseInt(document.getElementById('mr-slider').value, 10);
 
+    const results = document.getElementById('simulasi-results');
     const errBox = document.getElementById('simulasi-error');
     const errMsg = document.getElementById('simulasi-error-msg');
     const spinner = document.getElementById('btn-run-simulasi-spinner');
     const btnText = document.getElementById('btn-run-simulasi-text');
 
+    results.classList.add('hidden');
     errBox.classList.add('hidden');
     spinner.classList.remove('hidden');
     btnText.innerText = "Menghitung...";
@@ -1151,6 +1177,7 @@
         body: JSON.stringify({ p, q, e, message: m, mr_rounds })
       });
       const data = await resp.json();
+      if (requestId !== simulationRequestId) return;
 
       if (data.status !== 'ok') {
         throw new Error(data.message || 'Terjadi kesalahan pada perhitungan.');
@@ -1178,14 +1205,18 @@
       document.getElementById('out-h').innerText = `${data.h}`;
       document.getElementById('out-m-crt').innerText = `${data.m2} + ${data.h} × ${data.q} = ${data.m_crt}`;
 
+      results.classList.remove('hidden');
     } catch (err) {
+      if (requestId !== simulationRequestId) return;
       errMsg.innerText = err.message;
       errBox.classList.remove('hidden');
       document.getElementById('flow-c').innerText = "C = (Galat Input)";
       document.getElementById('flow-dec').innerText = "M = (Gagal)";
     } finally {
-      spinner.classList.add('hidden');
-      btnText.innerText = "Hitung & Jalankan Simulasi";
+      if (requestId === simulationRequestId) {
+        spinner.classList.add('hidden');
+        btnText.innerText = "Hitung & Jalankan Simulasi";
+      }
     }
   }
 

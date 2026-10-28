@@ -355,15 +355,18 @@ class RSAApiHandler(SimpleHTTPRequestHandler):
 
 
 def start_server(port=8000, open_browser=True):
-    # Port fallback jika 8000 dipakai
-    while port < 8020:
+    if not 0 <= port <= 65535:
+        raise ValueError("Port harus berada pada rentang 0 sampai 65535.")
+    for candidate_port in range(port, min(port + 20, 65536)):
         try:
-            server = ThreadingHTTPServer(("0.0.0.0", port), RSAApiHandler)
+            server = ThreadingHTTPServer(("0.0.0.0", candidate_port), RSAApiHandler)
             break
         except OSError:
-            port += 1
+            continue
+    else:
+        raise OSError(f"Tidak ada port kosong pada rentang {port} sampai {min(port + 19, 65535)}.")
 
-    url = f"http://localhost:{port}"
+    url = f"http://localhost:{server.server_port}"
     print("============================================================")
     print("  [+] RSA vs RSA-CRT Web Application Server")
     print(f"  [+] URL Aplikasi : {url}")
@@ -380,6 +383,7 @@ def start_server(port=8000, open_browser=True):
         server.serve_forever()
     except KeyboardInterrupt:
         print("\nServer dihentikan.")
+    finally:
         server.server_close()
 
 

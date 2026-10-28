@@ -8,8 +8,12 @@ async function main() {
   const script = [...html.matchAll(/<script(?![^>]*src=)[^>]*>([\s\S]*?)<\/script>/g)].at(-1)[1];
   const elements = new Map();
   const element = id => {
-    if (!elements.has(id)) elements.set(id, {value:'',innerText:'',innerHTML:'',
-      classList:{add(){},remove(){},toggle(){}},appendChild(){},scrollIntoView(){}});
+    if (!elements.has(id)) {
+      const classes = new Set();
+      elements.set(id, {value:'',innerText:'',innerHTML:'',
+        classList:{add(...names){names.forEach(n=>classes.add(n))},remove(...names){names.forEach(n=>classes.delete(n))},contains(n){return classes.has(n)},toggle(){}},
+        appendChild(){},scrollIntoView(){}});
+    }
     return elements.get(id);
   };
   const requests = [];
@@ -41,6 +45,25 @@ async function main() {
   await vm.runInContext('runSimulasi()',context);
   assert.equal(requests.at(-1).payload.message,'9007199254740993');
   assert.equal(element('out-n').innerText,'1000000016000000063');
+
+  const regularFetch = context.fetch;
+  const pending = [];
+  const simulationData = message => ({status:'ok',m:message,m_rsa:message,m_crt:message,
+    n:'2537',phi:'2436',q:'59',c:'2081',d:'937',dP:'13',dQ:'9',qInv:'35',m1:'13',m2:'49',h:'30'});
+  context.fetch = () => new Promise(resolve => pending.push(resolve));
+  element('param-m').value='1819';
+  const older = vm.runInContext('runSimulasi()',context);
+  element('param-m').value='42';
+  const newer = vm.runInContext('runSimulasi()',context);
+  pending[1]({json:async()=>simulationData('42')}); await newer;
+  pending[0]({json:async()=>simulationData('1819')}); await older;
+  assert.equal(element('out-m-rsa').innerText,'42','older response must not replace latest results');
+  context.fetch = async () => ({json:async()=>({status:'error',message:'invalid prime'})});
+  await vm.runInContext('runSimulasi()',context);
+  assert(element('simulasi-results').classList.contains('hidden'),'invalid input must hide previous results');
+  assert(!element('simulasi-error').classList.contains('hidden'));
+  context.fetch = regularFetch;
+
   assert.equal(vm.runInContext('gcd(17n,3120n)',context),1n);
   assert.equal(vm.runInContext('nextPrime(43n)',context),47n);
   assert.equal(vm.runInContext('prevPrime(43n)',context),41n);

@@ -167,5 +167,34 @@ class WebApiTests(unittest.TestCase):
             self.assertEqual(code,400)
 
 
+class ServerStartupTests(unittest.TestCase):
+    def test_custom_high_port_and_os_assigned_port(self):
+        for requested, actual in [(9030, 9030), (0, 54321)]:
+            with self.subTest(port=requested), patch.object(server, 'ThreadingHTTPServer') as factory, patch('builtins.print') as output:
+                http = factory.return_value
+                http.server_port = actual
+                server.start_server(requested, open_browser=False)
+                factory.assert_called_once_with(('0.0.0.0', requested), server.RSAApiHandler)
+                http.serve_forever.assert_called_once()
+                http.server_close.assert_called_once()
+                output.assert_any_call(f'  [+] URL Aplikasi : http://localhost:{actual}')
+
+    def test_busy_port_uses_next_port(self):
+        with patch.object(server, 'ThreadingHTTPServer') as factory, patch('builtins.print'):
+            http = factory.return_value
+            http.server_port = 9031
+            factory.side_effect = [OSError('port occupied'), http]
+            server.start_server(9030, open_browser=False)
+            self.assertEqual([call.args[0][1] for call in factory.call_args_list], [9030, 9031])
+            http.serve_forever.assert_called_once()
+            http.server_close.assert_called_once()
+
+    def test_all_candidate_ports_busy(self):
+        with patch.object(server, 'ThreadingHTTPServer', side_effect=OSError('port occupied')) as factory:
+            with self.assertRaisesRegex(OSError, 'Tidak ada port kosong'):
+                server.start_server(9030, open_browser=False)
+            self.assertEqual(factory.call_count, 20)
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
