@@ -93,7 +93,94 @@ async function main() {
     assert.equal(requests.at(-1).payload.p,'43');
     assert.equal(element('res-dec-text').innerText,'  Ã©ðŸ˜€\n');
     assert.match(element('text-speedup-badge').innerText,/lebih lambat/);
+
+    const runText = text => {
+      element('text-input-msg').value = text;
+      return vm.runInContext('runTextEncrypt()',context);
+    };
+    const textData = text => ({status:'ok',rsa_time_ms:1,crt_time_ms:2,speedup:0.5,
+      text_original:text,text_decrypted:text,total_bytes:new TextEncoder().encode(text).length,
+      is_valid:true,ciphertext_hex:'41',ciphertext_base64:'NDE=',total_blocks:1,blocks:[]});
+    const textReply = text => ({json:async()=>textData(text)});
+    const isHidden = id => element(id).classList.contains('hidden');
+    const requestCount = requests.length;
+    await runText('');
+    assert(isHidden('text-results-section'),'empty input must hide previous results');
+    assert(!isHidden('text-error-box'),'empty input must show its error');
+    assert(isHidden('btn-text-spinner'),'empty input must reset loading state');
+    assert.equal(requests.length,requestCount,'empty input must not send a request');
+
+    for (const failure of ['api','network']) {
+      context.fetch = async () => textReply('previous success');
+      await runText('previous success');
+      context.fetch = failure === 'api'
+        ? async () => ({json:async()=>({status:'error',message:'invalid key'})})
+        : async () => {throw Error('network unavailable')};
+      await runText('invalid request');
+      assert(isHidden('text-results-section'),failure+' failure must hide previous results');
+      assert(!isHidden('text-error-box'),failure+' failure must show its error');
+      assert(isHidden('btn-text-spinner'),failure+' failure must reset loading state');
+      assert.equal(element('btn-text-label').innerText,'Enkripsi & Dekripsi Pesan Teks');
+    }
+
+    const waiting = [];
+    const deferText = () => {
+      waiting.length = 0;
+      context.fetch = () => new Promise((resolve,reject)=>waiting.push({resolve,reject}));
+    };
+    deferText();
+    const oldText = runText('older result');
+    const newText = runText('newer result');
+    assert(isHidden('text-results-section'),'pending request must hide previous results');
+    waiting[1].resolve(textReply('newer result')); await newText;
+    waiting[0].resolve(textReply('older result')); await oldText;
+    assert.equal(element('res-dec-text').innerText,'newer result','late success must not replace latest result');
+    assert(!isHidden('text-results-section'));
+    assert(isHidden('text-error-box'));
+
+    deferText();
+    const earlyText = runText('first response');
+    const pendingText = runText('latest response');
+    waiting[0].resolve(textReply('first response')); await earlyText;
+    assert(isHidden('text-results-section'),'old response must not reveal results while latest request is pending');
+    assert(!isHidden('btn-text-spinner'),'old response must not stop latest loading state');
+    assert.equal(element('btn-text-label').innerText,'Mengenkripsi & Mendekripsi...');
+    waiting[1].resolve(textReply('latest response')); await pendingText;
+    assert.equal(element('res-dec-text').innerText,'latest response');
+    assert(isHidden('btn-text-spinner'));
+
+    deferText();
+    const oldFailure = runText('older failure');
+    const latestSuccess = runText('latest success');
+    waiting[1].resolve(textReply('latest success')); await latestSuccess;
+    waiting[0].reject(Error('outdated error')); await oldFailure;
+    assert.equal(element('res-dec-text').innerText,'latest success');
+    assert(isHidden('text-error-box'),'late error must not replace latest success');
+    assert(!isHidden('text-results-section'));
+
+    deferText();
+    const beforeEmpty = runText('pending before empty');
+    await runText('');
+    waiting[0].resolve(textReply('pending before empty')); await beforeEmpty;
+    assert(isHidden('text-results-section'),'late success must not undo newer empty-input rejection');
+    assert(!isHidden('text-error-box'));
+    assert.match(element('text-error-msg').innerText,/tidak boleh kosong/);
+    assert(isHidden('btn-text-spinner'));
+
+    deferText();
+    const beforeError = runText('pending before rejection');
+    const rejectedText = runText('rejected request');
+    waiting[1].resolve({json:async()=>({status:'error',message:'latest rejection'})}); await rejectedText;
+    waiting[0].resolve(textReply('pending before rejection')); await beforeError;
+    assert(isHidden('text-results-section'),'late success must not undo newer API rejection');
+    assert(!isHidden('text-error-box'));
+    assert.equal(element('text-error-msg').innerText,'latest rejection');
+    context.fetch = regularFetch;
+    await runText('recovered request');
+    assert(!isHidden('text-results-section'),'valid retry must show results');
+    assert(isHidden('text-error-box'),'valid retry must clear previous error');
+    assert.equal(element('res-dec-text').innerText,'recovered request');
   }
-  console.log('PASS: exact integers, steppers, request serialization, Miller-Rabin labels, speedup labels'+(html.includes('text-input-msg')?', exact text.':'.'));
+  console.log('PASS: exact integers, steppers, request serialization, Miller-Rabin labels, speedup labels'+(html.includes('text-input-msg')?', exact text, text request ordering and error recovery.':'.'));
 }
 main().catch(error=>{console.error(error);process.exitCode=1});
